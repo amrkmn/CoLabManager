@@ -3,6 +3,7 @@
 	let email = '';
 	let password = '';
 	let errors: string[] = [];
+	let loading = false;
 
 	const errorMessages: Record<string, string> = {
 		email_required: 'Email is required.',
@@ -14,6 +15,7 @@
 	};
 
 	async function handleLogin() {
+		loading = true;
 		const res = await fetch('/api/login', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -38,77 +40,94 @@
 		'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800'
 	)}
 >
-	<div
-		class={cn(
-			'bg-white dark:bg-slate-900',
-			'w-full max-w-md rounded-2xl p-8 shadow-2xl sm:p-10',
-			'border border-slate-200 backdrop-blur-md dark:border-slate-700'
-		)}
-	>
-		<h1 class="mb-6 text-center text-3xl font-semibold text-slate-800 dark:text-white">Sign In</h1>
+	{#if loading}
+		<div
+			class={cn(
+				'flex items-center justify-center',
+				'rounded-2xl border border-slate-200 bg-white p-8 shadow-2xl backdrop-blur-md dark:border-slate-700 dark:bg-slate-900'
+			)}
+		>
+			<p class="animate-pulse text-lg font-medium text-slate-700 dark:text-slate-200">
+				Logging in...
+			</p>
+		</div>
+	{:else}
+		<div
+			class={cn(
+				'bg-white dark:bg-slate-900',
+				'w-full max-w-md rounded-2xl p-8 shadow-2xl sm:p-10',
+				'border border-slate-200 backdrop-blur-md dark:border-slate-700'
+			)}
+		>
+			<h1 class="mb-6 text-center text-3xl font-semibold text-slate-800 dark:text-white">
+				Sign In
+			</h1>
 
-		{#if errors.length > 0}
-			<div class="mb-4">
-				<ul class="text-sm text-red-500">
-					{#each errors as error}
-						<li>{error}</li>
-					{/each}
-				</ul>
-			</div>
-		{/if}
+			{#if errors.length > 0}
+				<div class="mb-4">
+					<ul class="text-sm text-red-500">
+						{#each errors as error}
+							<li>{error}</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 
-		<form on:submit|preventDefault={handleLogin} class="space-y-5">
-			<div>
-				<label for="email" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300"
-					>Email</label
-				>
-				<input
-					id="email"
-					type="email"
-					bind:value={email}
-					required
+			<form on:submit|preventDefault={handleLogin} class="space-y-5">
+				<div>
+					<label
+						for="email"
+						class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label
+					>
+					<input
+						id="email"
+						type="email"
+						bind:value={email}
+						required
+						class={cn(
+							'w-full rounded-md border px-4 py-2',
+							'bg-white dark:border-slate-600 dark:bg-slate-800',
+							'text-slate-900 placeholder:text-slate-400 dark:text-white',
+							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+						)}
+					/>
+				</div>
+
+				<div>
+					<label
+						for="password"
+						class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300"
+						>Password</label
+					>
+					<input
+						id="password"
+						type="password"
+						bind:value={password}
+						required
+						class={cn(
+							'w-full rounded-md border px-4 py-2',
+							'bg-white dark:border-slate-600 dark:bg-slate-800',
+							'text-slate-900 placeholder:text-slate-400 dark:text-white',
+							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+						)}
+					/>
+				</div>
+
+				<button
+					type="submit"
 					class={cn(
-						'w-full rounded-md border px-4 py-2',
-						'bg-white dark:border-slate-600 dark:bg-slate-800',
-						'text-slate-900 placeholder:text-slate-400 dark:text-white',
-						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+						'w-full bg-blue-600 font-medium text-white hover:cursor-pointer hover:bg-blue-700',
+						'rounded-md py-2 shadow-sm transition duration-200'
 					)}
-				/>
-			</div>
-
-			<div>
-				<label
-					for="password"
-					class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Password</label
 				>
-				<input
-					id="password"
-					type="password"
-					bind:value={password}
-					required
-					class={cn(
-						'w-full rounded-md border px-4 py-2',
-						'bg-white dark:border-slate-600 dark:bg-slate-800',
-						'text-slate-900 placeholder:text-slate-400 dark:text-white',
-						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
-					)}
-				/>
-			</div>
+					Login
+				</button>
+			</form>
 
-			<button
-				type="submit"
-				class={cn(
-					'w-full bg-blue-600 font-medium text-white hover:cursor-pointer hover:bg-blue-700',
-					'rounded-md py-2 shadow-sm transition duration-200'
-				)}
-			>
-				Login
-			</button>
-		</form>
-
-		<p class="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
-			Don't have an account?
-			<a href="/register" class="text-blue-600 hover:underline">Register</a>
-		</p>
-	</div>
+			<p class="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
+				Don't have an account?
+				<a href="/register" class="text-blue-600 hover:underline">Register</a>
+			</p>
+		</div>
+	{/if}
 </div>
