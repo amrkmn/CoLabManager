@@ -2,9 +2,33 @@
 	import { cn } from '$lib/utils/style';
 	let email = '';
 	let password = '';
+	let errors: string[] = [];
 
-	function handleLogin() {
-		console.log('Logging in with:', email, password);
+	const errorMessages: Record<string, string> = {
+		email_required: 'Email is required.',
+		email_invalid: 'Please enter a valid email address.',
+		password_required: 'Password is required.',
+		password_too_short: 'Password must be at least 6 characters.',
+		invalid_credentials: 'Invalid email or password.',
+		internal_error: 'Something went wrong. Please try again later.'
+	};
+
+	async function handleLogin() {
+		const res = await fetch('/api/login', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email, password })
+		});
+		if (res.ok) {
+			window.location.href = '/dashboard';
+		} else {
+			const data = (await res.json()) as { error: boolean; message: string[] };
+			errors = data.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
+
+			setTimeout(() => {
+				errors = [];
+			}, 2500);
+		}
 	}
 </script>
 
@@ -23,6 +47,16 @@
 	>
 		<h1 class="mb-6 text-center text-3xl font-semibold text-slate-800 dark:text-white">Sign In</h1>
 
+		{#if errors.length > 0}
+			<div class="mb-4">
+				<ul class="text-sm text-red-500">
+					{#each errors as error}
+						<li>{error}</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+
 		<form on:submit|preventDefault={handleLogin} class="space-y-5">
 			<div>
 				<label for="email" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300"
@@ -34,7 +68,7 @@
 					bind:value={email}
 					required
 					class={cn(
-						'w-full rounded-xl border px-4 py-2',
+						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
 						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -53,7 +87,7 @@
 					bind:value={password}
 					required
 					class={cn(
-						'w-full rounded-xl border px-4 py-2',
+						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
 						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -64,8 +98,8 @@
 			<button
 				type="submit"
 				class={cn(
-					'w-full bg-blue-600 font-medium text-white hover:bg-blue-700',
-					'rounded-xl py-2 shadow-sm transition duration-200'
+					'w-full bg-blue-600 font-medium text-white hover:cursor-pointer hover:bg-blue-700',
+					'rounded-md py-2 shadow-sm transition duration-200'
 				)}
 			>
 				Login

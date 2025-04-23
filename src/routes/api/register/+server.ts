@@ -1,8 +1,8 @@
 import { prisma } from '$lib/server/prisma';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { json, type RequestHandler } from '@sveltejs/kit';
-import argon2 from 'argon2';
+import { isNullish } from '@sapphire/utilities';
+import { json } from '@sveltejs/kit';
 import { z } from 'zod';
+import type { RequestHandler } from './$types';
 
 const Register = z.object({
 	name: z.string({ required_error: 'name_required' }),
@@ -16,8 +16,12 @@ export const POST: RequestHandler = async ({ request }) => {
 		const data = await request.json();
 		const { name, email, password, contactNumber } = Register.parse(data);
 
-		const hashedPassword = await argon2.hash(password);
+		const checkUser = await prisma.user.findUnique({ where: { email } });
+		if (!isNullish(checkUser)) {
+			return json({ error: true, message: ['email_already_used'] }, { status: 409 });
+		}
 
+		const hashedPassword = await Bun.password.hash(password);
 		const user = await prisma.user.create({
 			data: {
 				name,
@@ -30,13 +34,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json(user);
 	} catch (error) {
 		if (error instanceof z.ZodError) {
-			const formatted = error.flatten();
-			return json({ error: true, message: formatted.fieldErrors }, { status: 400 });
-		}
-		if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-			return json({ error: true, message: 'email_already_used' }, { status: 400 });
+			const formatted = Object.values(error.flatten().fieldErrors).flat();
+			return json({ error: true, message: formatted }, { status: 400 });
 		}
 
-		return json({ error: true, message: String(error) });
+		return json({ error: true, message: ['internal_error'] }, { status: 500 });
 	}
 };

@@ -6,7 +6,7 @@
 
 generator client {
     provider = "prisma-client-js"
-    output = "../generated/prisma"
+    output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -36,11 +36,12 @@ model User {
     role          Role     @default(Student)
     createAt      DateTime @default(now())
 
-    project        Project[]
-    task           Task[]
-    file           File[]
-    message        Message[]
-    progressUpdate ProgressUpdate[]
+    projects        Project[]
+    tasks           Task[]
+    files           File[]
+    messages        Message[]
+    progressUpdates ProgressUpdate[]
+    sessions        Session[]
 }
 
 model Project {
@@ -50,11 +51,11 @@ model Project {
     createdAt   DateTime @default(now())
     createdBy   Int
 
-    user           User             @relation(fields: [createdBy], references: [id])
-    task           Task[]
-    file           File[]
-    message        Message[]
-    progressUpdate ProgressUpdate[]
+    user            User             @relation(fields: [createdBy], references: [id])
+    tasks           Task[]
+    files           File[]
+    messages        Message[]
+    progressUpdates ProgressUpdate[]
 }
 
 model Task {
@@ -66,9 +67,9 @@ model Task {
     assignTo    Int
     projectId   Int
 
-    user           User             @relation(fields: [assignTo], references: [id])
-    project        Project          @relation(fields: [projectId], references: [id])
-    progressUpdate ProgressUpdate[]
+    user            User             @relation(fields: [assignTo], references: [id])
+    project         Project          @relation(fields: [projectId], references: [id])
+    progressUpdates ProgressUpdate[]
 }
 
 model File {
@@ -105,4 +106,12 @@ model ProgressUpdate {
     user    User    @relation(fields: [updatedBy], references: [id])
     project Project @relation(fields: [projectId], references: [id])
     task    Task    @relation(fields: [taskId], references: [id])
+}
+
+model Session {
+    id        String   @id
+    userId    Int
+    expiresAt DateTime
+
+    user User @relation(fields: [userId], references: [id])
 }
