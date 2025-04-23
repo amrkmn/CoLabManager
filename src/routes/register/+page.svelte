@@ -91,7 +91,7 @@
 					bind:value={name}
 					required
 					class={cn(
-						'w-full rounded-xl border px-4 py-2',
+						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
 						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -109,7 +109,7 @@
 					bind:value={email}
 					required
 					class={cn(
-						'w-full rounded-xl border px-4 py-2',
+						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
 						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -128,7 +128,7 @@
 					bind:value={password}
 					required
 					class={cn(
-						'w-full rounded-xl border px-4 py-2',
+						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
 						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -148,7 +148,7 @@
 					bind:value={confirmPassword}
 					required
 					class={cn(
-						'w-full rounded-xl border px-4 py-2',
+						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
 						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -165,7 +165,7 @@
 				<div class="flex w-full gap-2">
 					<select
 						class={cn(
-							'w-1/3 flex-shrink-0 rounded-xl border py-2 pr-2',
+							'w-1/3 flex-shrink-0 rounded-md border py-2 pr-2',
 							'bg-white dark:border-slate-600 dark:bg-slate-800',
 							'text-slate-900 placeholder:text-slate-400 dark:text-white',
 							'focus:ring-2 focus:ring-blue-500 focus:outline-none',
@@ -187,7 +187,7 @@
 						bind:value={contactNumber}
 						bind:valid={validPhoneNumber}
 						class={cn(
-							'w-2/3 flex-grow rounded-xl border px-4 py-2',
+							'w-2/3 flex-grow rounded-md border px-4 py-2',
 							'bg-white dark:border-slate-600 dark:bg-slate-800',
 							'text-slate-900 placeholder:text-slate-400 dark:text-white',
 							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -200,7 +200,7 @@
 					bind:value={contactNumber}
 					required
 					class={cn(
-						'w-full rounded-xl border px-4 py-2',
+						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
 						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
@@ -212,7 +212,7 @@
 				type="submit"
 				class={cn(
 					'w-full bg-blue-600 font-medium text-white hover:cursor-pointer hover:bg-blue-700',
-					'rounded-xl py-2 shadow-sm transition duration-200'
+					'rounded-md py-2 shadow-sm transition duration-200'
 				)}
 			>
 				Register
