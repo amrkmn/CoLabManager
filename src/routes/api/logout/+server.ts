@@ -15,5 +15,5 @@ export const POST: RequestHandler = async ({ cookies, locals }) => {
 	locals.session = null;
 	locals.user = null;
 
-	return redirect(302, '/login');
+	return redirect(302, '/auth/login');
 };

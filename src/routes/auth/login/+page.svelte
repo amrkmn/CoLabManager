@@ -24,6 +24,7 @@
 		if (res.ok) {
 			window.location.href = '/dashboard';
 		} else {
+			loading = false;
 			const data = (await res.json()) as { error: boolean; message: string[] };
 			errors = data.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
 
@@ -126,7 +127,7 @@
 
 			<p class="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
 				Don't have an account?
-				<a href="/register" class="text-blue-600 hover:underline">Register</a>
+				<a href="/auth/register" class="text-blue-600 hover:underline">Register</a>
 			</p>
 		</div>
 	{/if}

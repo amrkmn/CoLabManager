@@ -221,7 +221,7 @@
 
 		<p class="mt-4 text-center text-sm text-slate-600 dark:text-slate-400">
 			Already have an account?
-			<a href="/login" class="text-blue-600 hover:underline">Login</a>
+			<a href="/auth/login" class="text-blue-600 hover:underline">Login</a>
 		</p>
 	</div>
 </div>

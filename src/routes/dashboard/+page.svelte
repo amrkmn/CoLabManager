@@ -4,7 +4,7 @@
 	export let data;
 
 	function handleLogout() {
-		goto('/logout');
+		goto('/auth/logout');
 	}
 </script>
 

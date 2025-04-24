@@ -5,7 +5,7 @@
 
 	onMount(async () => {
 		await fetch('/api/logout', { method: 'POST' });
-		goto('/login');
+		goto('/auth/login');
 	});
 </script>
 

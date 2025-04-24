@@ -1,12 +1,13 @@
 import { isNullish } from '@sapphire/utilities';
 import { redirect } from '@sveltejs/kit';
 
-export async function load({ locals }) {
+export const load = async ({ locals }) => {
 	if (isNullish(locals.user)) {
-		return redirect(302, '/login');
+		return redirect(302, '/');
 	}
 
+	const { id, name, email, contactNumber, role } = locals.user;
 	return {
-		user: locals.user
+		user: { id, name, email, contactNumber, role }
 	};
-}
+};
