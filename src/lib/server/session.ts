@@ -75,16 +75,18 @@ export function setSessionTokenCookie(cookies: Cookies, token: string, expiresAt
 		httpOnly: true,
 		sameSite: 'lax',
 		expires: expiresAt,
-		path: '/'
+		path: '/',
+		secure: Bun.env.NODE_ENV === 'production'
 	});
 }
 
 export function deleteSessionTokenCookie(cookies: Cookies): void {
-	cookies.set('session', '', {
+	cookies.delete('session', {
 		httpOnly: true,
 		sameSite: 'lax',
 		maxAge: 0,
-		path: '/'
+		path: '/',
+		secure: Bun.env.NODE_ENV === 'production'
 	});
 }
 
