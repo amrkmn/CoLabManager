@@ -11,10 +11,10 @@
 	)}
 >
 	<!-- Header -->
-	<Header user={data.user}></Header>
+	<Header user={data.user!}></Header>
 	<main class="flex-1 p-6 text-slate-800 dark:text-white">
 		<h2 class="mt-0 mb-4 text-2xl font-semibold text-slate-600 dark:text-slate-400">
-			Welcome back, {data.user.name}!
+			Welcome back, {data.user!.name}!
 		</h2>
 		<p class="text-slate-600 dark:text-slate-400">Here's what's happening today:</p>
 	</main>
