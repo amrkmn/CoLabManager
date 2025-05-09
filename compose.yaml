@@ -1,0 +1,11 @@
+services:
+  app:
+    image: ghcr.io/amrkmn/pta:latest
+    container_name: pta
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: "production"
+      PORT: 3000
+      DATABASE_URL: "postgresql://postgres.dionqbwfudyahufnnkij:AyTea_059996@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+      DIRECT_URL: "postgresql://postgres.dionqbwfudyahufnnkij:AyTea_059996@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
