@@ -1,0 +1,11 @@
+services:
+  app:
+    image: ghcr.io/amrkmn/pta:latest
+    container_name: pta
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: "production"
+      PORT: 3000
+      DATABASE_URL: ""
+      DIRECT_URL: ""
