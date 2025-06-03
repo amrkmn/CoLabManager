@@ -12,7 +12,7 @@ export function generateSessionToken(): string {
 	return token;
 }
 
-export async function createSession(token: string, userId: number): Promise<Session> {
+export async function createSession(token: string, userId: string): Promise<Session> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const session: Session = {
 		id: sessionId,
@@ -40,7 +40,7 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 	}
 	const { user, ...session } = result;
 	if (Date.now() >= session.expiresAt.getTime()) {
-		await prisma.session.delete({ where: { id: sessionId } });
+		await prisma.session.deleteMany({ where: { id: sessionId } });
 		return { session: null, user: null };
 	}
 	if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
@@ -59,10 +59,10 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 
 export async function invalidateSession(token: string): Promise<void> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	await prisma.session.delete({ where: { id: sessionId } });
+	await prisma.session.deleteMany({ where: { id: sessionId } });
 }
 
-export async function invalidateAllSessions(userId: number): Promise<void> {
+export async function invalidateAllSessions(userId: string): Promise<void> {
 	await prisma.session.deleteMany({
 		where: {
 			userId: userId

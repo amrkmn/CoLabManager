@@ -10,14 +10,12 @@ generator client {
 }
 
 datasource db {
-    provider  = "postgresql"
-    url       = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
 }
 
 enum Role {
-    Student
-    Instructor
+    User
     Admin
 }
 
@@ -28,12 +26,12 @@ enum TaskStatus {
 }
 
 model User {
-    id                Int      @id @default(autoincrement())
+    id                String   @id @default(cuid())
     name              String
     email             String   @unique
     password          String
     contactNumber     String
-    role              Role     @default(Student)
+    role              Role     @default(User)
     profilePictureUrl String?
     createAt          DateTime @default(now())
 
@@ -46,11 +44,11 @@ model User {
 }
 
 model Project {
-    id          Int      @id @default(autoincrement())
+    id          String   @id @default(cuid())
     name        String
     description String?
     createdAt   DateTime @default(now())
-    createdBy   Int
+    createdBy   String
 
     user            User             @relation(fields: [createdBy], references: [id])
     tasks           Task[]
@@ -60,13 +58,13 @@ model Project {
 }
 
 model Task {
-    id          Int        @id @default(autoincrement())
+    id          String     @id @default(cuid())
     name        String
     description String?
     status      TaskStatus
     dueDate     DateTime?
-    assignTo    Int
-    projectId   Int
+    assignTo    String
+    projectId   String
 
     user            User             @relation(fields: [assignTo], references: [id])
     project         Project          @relation(fields: [projectId], references: [id])
@@ -74,35 +72,35 @@ model Task {
 }
 
 model File {
-    id         Int      @id @default(autoincrement())
+    id         String   @id @default(cuid())
     name       String
     path       String
     uploadedAt DateTime @default(now())
-    uploadedBy Int
-    projectId  Int
+    uploadedBy String
+    projectId  String
 
     user    User    @relation(fields: [uploadedBy], references: [id])
     project Project @relation(fields: [projectId], references: [id])
 }
 
 model Message {
-    id        Int      @id @default(autoincrement())
+    id        String   @id @default(cuid())
     text      String
     createdAt DateTime @default(now())
-    senderId  Int
-    projectId Int
+    senderId  String
+    projectId String
 
     user    User    @relation(fields: [senderId], references: [id])
     project Project @relation(fields: [projectId], references: [id])
 }
 
 model ProgressUpdate {
-    id        Int      @id @default(autoincrement())
+    id        String   @id @default(cuid())
     text      String
     updatedAt DateTime @default(now())
-    updatedBy Int
-    projectId Int
-    taskId    Int
+    updatedBy String
+    projectId String
+    taskId    String
 
     user    User    @relation(fields: [updatedBy], references: [id])
     project Project @relation(fields: [projectId], references: [id])
@@ -111,7 +109,7 @@ model ProgressUpdate {
 
 model Session {
     id        String   @id
-    userId    Int
+    userId    String
     expiresAt DateTime
 
     user User @relation(fields: [userId], references: [id])

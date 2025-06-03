@@ -8,10 +8,11 @@
 	let confirmPassword = '';
 	let contactNumber = '';
 	let role = '';
-	let profilePicture = ''; // URL of the profile picture
+	let profilePictureUrl = ''; // URL of the profile picture
 	let errors: string[] = [];
 	let successMessage = '';
 	let newProfilePicture: File | null = null;
+	let fileInput: HTMLInputElement | null = null; // Reference to the file input element
 
 	async function fetchUserProfile() {
 		const res = await fetch('/api/profile');
@@ -21,7 +22,7 @@
 			email = data.email;
 			contactNumber = data.contactNumber;
 			role = data.role;
-			profilePicture = data.profilePicture; // Assuming the API returns the profile picture URL
+			profilePictureUrl = data.profilePictureUrl; // Assuming the API returns the profile picture URL
 		} else {
 			errors.push('Failed to load profile data.');
 		}
@@ -51,6 +52,12 @@
 		if (res.ok) {
 			successMessage = 'Profile updated successfully!';
 			await fetchUserProfile(); // Refresh profile data
+			if (fileInput) fileInput.value = ''; // Clear the file input
+			newProfilePicture = null; // Reset the new profile picture
+			// Hide success message after 3 seconds
+			setTimeout(() => {
+				successMessage = '';
+			}, 1500);
 		} else {
 			const data = await res.json();
 			errors = data.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
@@ -60,7 +67,15 @@
 	function handleProfilePictureChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.files && target.files[0]) {
-			newProfilePicture = target.files[0];
+			const file = target.files[0];
+			const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+			if (!allowedTypes.includes(file.type)) {
+				errors = ['Only JPG, PNG, GIF, and WEBP images are allowed.'];
+				if (fileInput) fileInput.value = '';
+				newProfilePicture = null;
+				return;
+			}
+			newProfilePicture = file;
 		}
 	}
 
@@ -85,6 +100,8 @@
 			Profile Settings
 		</h1>
 
+		<a href="/dashboard" class="mb-6 inline-block text-blue-600 hover:underline text-sm">&larr; Back to Dashboard</a>
+
 		{#if errors.length > 0}
 			<div class="mb-4">
 				<ul class="text-sm text-red-500">
@@ -102,7 +119,7 @@
 		<form on:submit|preventDefault={handleUpdateProfile} class="space-y-5">
 			<div class="flex flex-col items-center">
 				<img
-					src={profilePicture || `https://ui-avatars.com/api/?name=${name}`}
+					src={profilePictureUrl || `https://ui-avatars.com/api/?name=${name}`}
 					alt="Profile"
 					class="mb-4 h-24 w-24 rounded-full object-cover"
 				/>
@@ -115,7 +132,8 @@
 				<input
 					id="profilePicture"
 					type="file"
-					accept="image/*"
+					accept=".jpg,.jpeg,.png,.gif,.webp"
+					bind:this={fileInput}
 					on:change={handleProfilePictureChange}
 					class="block w-full text-sm text-slate-500 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-white hover:file:bg-blue-700"
 				/>

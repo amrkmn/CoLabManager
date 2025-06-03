@@ -1,11 +1,10 @@
+import { getPublicURL, uploadToS3 } from '$lib/server/minio'; // Assuming you have a MinIO client setup
 import { prisma } from '$lib/server/prisma';
-import { json } from '@sveltejs/kit';
-import { z } from 'zod';
-import { isNullish } from '@sapphire/utilities';
-import { getPublicURL, MinioClient, uploadToMinIO } from '$lib/server/minio'; // Assuming you have a MinIO client setup
-import { randomUUID } from 'crypto';
 import { createId } from '@paralleldrive/cuid2';
+import { isNullish } from '@sapphire/utilities';
+import { json } from '@sveltejs/kit';
 import path from 'path';
+import { z } from 'zod';
 
 const UpdateProfile = z.object({
 	name: z.string(),
@@ -36,9 +35,9 @@ export const PUT = async ({ request, locals }) => {
 	const formData = await request.formData();
 	const name = formData.get('name') as string;
 	const email = formData.get('email') as string;
-	const password = formData.get('password') as string | null;
+	const password = (formData.get('password') as string) || undefined;
 	const contactNumber = formData.get('contactNumber') as string;
-	const profilePicture = formData.get('profilePicture') as File | null;
+	const profilePicture = (formData.get('profilePicture') as File) || undefined;
 
 	// Validate the input
 	const parsed = UpdateProfile.parse({
@@ -52,11 +51,11 @@ export const PUT = async ({ request, locals }) => {
 	let profilePictureUrl: string | undefined;
 
 	// Handle profile picture upload to MinIO
-	if (profilePicture) {
-		const fileName = `${locals.user.id}/${createId()}.${path.extname(profilePicture.name)}`;
+	if (profilePicture && profilePicture.size > 0) {
+		const fileName = `${locals.user.id}/pfp/image${path.extname(profilePicture.name)}`;
 		const fileBuffer = Buffer.from(await profilePicture.arrayBuffer());
 
-		uploadToMinIO(fileName, fileBuffer, profilePicture.type);
+		await uploadToS3(fileName, fileBuffer, profilePicture.type);
 
 		// Generate the URL for the uploaded file
 		profilePictureUrl = getPublicURL(fileName);
@@ -70,7 +69,7 @@ export const PUT = async ({ request, locals }) => {
 			email: parsed.email,
 			contactNumber: parsed.contactNumber,
 			...(parsed.password && { password: await Bun.password.hash(parsed.password) }),
-			...(profilePictureUrl && { profilePicture: profilePictureUrl })
+			...(profilePictureUrl && { profilePictureUrl })
 		}
 	});
 
