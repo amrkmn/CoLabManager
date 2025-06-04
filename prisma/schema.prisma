@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
     provider = "prisma-client-js"
     output   = "../node_modules/.prisma/client"
@@ -19,12 +13,6 @@ enum Role {
     Admin
 }
 
-enum TaskStatus {
-    Pending
-    InProgress
-    Completed
-}
-
 model User {
     id                String   @id @default(cuid())
     name              String
@@ -35,7 +23,7 @@ model User {
     profilePictureUrl String?
     createAt          DateTime @default(now())
 
-    projects        Project[]
+    projects        Project[]        @relation("CreatedProjects")
     tasks           Task[]
     files           File[]
     messages        Message[]
@@ -50,25 +38,37 @@ model Project {
     createdAt   DateTime @default(now())
     createdBy   String
 
-    user            User             @relation(fields: [createdBy], references: [id])
+    user            User             @relation("CreatedProjects", fields: [createdBy], references: [id])
     tasks           Task[]
     files           File[]
     messages        Message[]
     progressUpdates ProgressUpdate[]
+    columns         KanbanColumn[]
+}
+
+model KanbanColumn {
+    id        String @id @default(cuid())
+    name      String
+    order     Int
+    projectId String
+
+    project Project @relation(fields: [projectId], references: [id])
+    tasks   Task[]
 }
 
 model Task {
-    id          String     @id @default(cuid())
+    id          String    @id @default(cuid())
     name        String
     description String?
-    status      TaskStatus
     dueDate     DateTime?
     assignTo    String
-    projectId   String
+    columnId    String
 
     user            User             @relation(fields: [assignTo], references: [id])
-    project         Project          @relation(fields: [projectId], references: [id])
+    column          KanbanColumn     @relation(fields: [columnId], references: [id])
     progressUpdates ProgressUpdate[]
+    Project         Project?         @relation(fields: [projectId], references: [id])
+    projectId       String?
 }
 
 model File {

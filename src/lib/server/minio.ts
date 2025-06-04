@@ -13,11 +13,11 @@ const config = {
 const BUCKET_NAME = process.env.S3_BUCKET || 'pta';
 
 export const MinioClient = new Client({
-	endPoint: config.s3.endpoint, // Replace with your MinIO server address
-	port: config.s3.port, // Replace with your MinIO server port
-	useSSL: config.s3.useSSL, // Set to true if using SSL
-	accessKey: config.s3.accessKeyId, // Replace with your MinIO access key
-	secretKey: config.s3.secretAccessKey // Replace with your MinIO secret key
+	endPoint: config.s3.endpoint,
+	port: config.s3.port,
+	useSSL: config.s3.useSSL,
+	accessKey: config.s3.accessKeyId,
+	secretKey: config.s3.secretAccessKey
 });
 
 async function ensureBucketExists(bucket: string) {

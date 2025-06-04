@@ -6,8 +6,7 @@ export const load = async ({ locals }) => {
 		return redirect(302, '/');
 	}
 
-	const { id, name, email, contactNumber, role, createAt } = locals.user;
 	return {
-		user: { id, name, email, contactNumber, role, createAt }
+		user: locals.user
 	};
 };

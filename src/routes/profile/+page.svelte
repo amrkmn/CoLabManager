@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/style';
 	import { onMount } from 'svelte';
-	import { errorMessages } from '$lib/constants/errorMessages'; // Assuming you have a centralized error messages file
+	import { errorMessages } from '$lib/constants/errorMessages';
+	export let data;
 	let name = '';
 	let email = '';
 	let password = '';
 	let confirmPassword = '';
 	let contactNumber = '';
 	let role = '';
-	let profilePictureUrl = ''; // URL of the profile picture
+	let profilePictureUrl = '';
 	let errors: string[] = [];
 	let successMessage = '';
 	let newProfilePicture: File | null = null;
-	let fileInput: HTMLInputElement | null = null; // Reference to the file input element
+	let fileInput: HTMLInputElement | null = null;
+
+	console.log(data);
 
 	async function fetchUserProfile() {
 		const res = await fetch('/api/profile');
@@ -100,7 +103,9 @@
 			Profile Settings
 		</h1>
 
-		<a href="/dashboard" class="mb-6 inline-block text-blue-600 hover:underline text-sm">&larr; Back to Dashboard</a>
+		<a href="/dashboard" class="mb-6 inline-block text-sm text-blue-600 hover:underline"
+			>&larr; Back to Dashboard</a
+		>
 
 		{#if errors.length > 0}
 			<div class="mb-4">

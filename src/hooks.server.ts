@@ -24,6 +24,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	event.locals.session = session;
-	event.locals.user = user;
+
+	if (user !== null) {
+		const { password, ...userWithoutPassword } = user;
+		event.locals.user = userWithoutPassword;
+	} else {
+		event.locals.user = null;
+	}
+
 	return resolve(event);
 };

@@ -8,5 +8,6 @@ export const load = async ({ locals }) => {
 		return redirect(302, '/auth/login');
 	}
 
+    
 	return { user };
 };

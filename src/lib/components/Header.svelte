@@ -2,11 +2,13 @@
 	import { goto } from '$app/navigation';
 	import { cn } from '$lib/utils/style';
 	import type { User } from '@prisma/client';
+	import { onDestroy, onMount } from 'svelte';
 
 	export let user: Omit<User, 'password'>;
 
 	let showMenu = false;
 	let isAdmin = false;
+	let dropdownRef: HTMLDivElement | null = null;
 
 	if (user.role === 'Admin') {
 		isAdmin = true;
@@ -19,6 +21,19 @@
 	function toggleMenu() {
 		showMenu = !showMenu;
 	}
+
+	function handleClickOutside(event: MouseEvent) {
+		if (showMenu && dropdownRef && !dropdownRef.contains(event.target as Node)) {
+			showMenu = false;
+		}
+	}
+
+	onMount(() => {
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	});
 </script>
 
 <header
@@ -32,29 +47,16 @@
 		><h1 class="mb-0 text-base font-medium text-slate-800 dark:text-white">Dashboard</h1></a
 	>
 	<div class="flex items-center gap-4">
-		<!-- <button
-			class={cn(
-				'w-20 bg-blue-600 text-sm font-medium text-white hover:cursor-pointer hover:bg-blue-700',
-				'rounded-md py-2 shadow-sm transition duration-200'
-			)}
-			on:click={handleLogout}
-		>
-			Logout
-		</button> -->
-		<!-- <a href="/settings/admin" class="text-sm font-medium text-white hover:cursor-pointer">
-			Administration
-		</a> -->
-
 		<!-- Avatar & Dropdown Trigger -->
-		<div class="relative">
+		<div class="relative" bind:this={dropdownRef}>
 			<!-- Avatar Dropdown Trigger -->
 			<button
 				on:click={toggleMenu}
-				class="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-slate-600"
+				class="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-slate-600"
 				aria-label="User menu"
 			>
 				<img
-					src={`https://ui-avatars.com/api/?name=${user.name}`}
+					src={user.profilePictureUrl || `https://ui-avatars.com/api/?name=${user.name}`}
 					alt="User Avatar"
 					class="h-full w-full object-cover"
 				/>
