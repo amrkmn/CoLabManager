@@ -1,8 +1,6 @@
-<script lang="ts">
-	import Header from '$lib/components/Header.svelte';
+<script lang="ts">	import Header from '$lib/components/Header.svelte';
 	import SideNav from '$lib/components/SideNav.svelte';
 	import { page } from '$app/state';
-	import { onMount } from 'svelte';
 	import Kanban from '$lib/components/Kanban.svelte';
 	import { cn } from '$lib/utils/style';
 	let { data } = $props();
@@ -27,14 +25,16 @@
 		createdAt: string;
 		updatedAt: string;
 	}
-
 	let project = $state<Project | null>(null);
 	let tasks = $state<Task[]>([]);
 	let isLoading = $state(true);
 	let error = $state('');
 
-	onMount(() => {
-		loadProjectData();
+	// React to projectId changes
+	$effect(() => {
+		if (projectId) {
+			loadProjectData();
+		}
 	});
 
 	async function loadProjectData() {

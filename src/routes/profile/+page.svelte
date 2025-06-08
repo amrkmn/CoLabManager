@@ -2,7 +2,7 @@
 	import { cn } from '$lib/utils/style';
 	import { onMount } from 'svelte';
 	import { errorMessages } from '$lib/constants/errorMessages';
-	export let data;
+
 	let name = '';
 	let email = '';
 	let password = '';
@@ -14,8 +14,6 @@
 	let successMessage = '';
 	let newProfilePicture: File | null = null;
 	let fileInput: HTMLInputElement | null = null;
-
-	console.log(data);
 
 	async function fetchUserProfile() {
 		const res = await fetch('/api/profile');
@@ -54,10 +52,9 @@
 
 		if (res.ok) {
 			successMessage = 'Profile updated successfully!';
-			await fetchUserProfile(); // Refresh profile data
-			if (fileInput) fileInput.value = ''; // Clear the file input
-			newProfilePicture = null; // Reset the new profile picture
-			// Hide success message after 3 seconds
+			await fetchUserProfile();
+			if (fileInput) fileInput.value = '';
+			newProfilePicture = null;
 			setTimeout(() => {
 				successMessage = '';
 			}, 1500);

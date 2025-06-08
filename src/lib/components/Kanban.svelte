@@ -79,8 +79,7 @@
 				updateColumns(tasks);
 			}
 		} catch (err) {
-			// Silently fail for general tasks for now
-			console.log('No general tasks endpoint available');
+			console.error('No general tasks endpoint available');
 		} finally {
 			isLoading = false;
 		}
