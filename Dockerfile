@@ -1,48 +1,42 @@
-# Use the official Bun image as the base image
-FROM oven/bun:alpine AS base
+# -------- Build Stage --------
+FROM oven/bun:alpine AS builder
 
-# Set the working directory inside the container
+LABEL org.opencontainers.image.source=https://github.com/amrkmn/PTA
+
 WORKDIR /app
 
-# Copy package.json and bun.lockb to install dependencies
+# Copy only necessary files for dependency installation
 COPY package.json bun.lock ./
 
-# Install dependencies using Bun
+# Install only production dependencies
 RUN bun install --frozen-lockfile
 
-# Copy the Prisma schema if it exists
+# Copy Prisma schema and generate client
 COPY prisma ./prisma/
-
-# Generate Prisma client.  This is crucial for production.
 RUN bunx prisma generate
 
-# Copy the rest of the application code
+# Copy the rest of the source code
 COPY . .
 
-# Build the SvelteKit application for production
+# Build the app
 RUN bun run build
 
-# --- Production Stage ---
-# Use a minimal Node.js image for the production stage
+# -------- Production Stage --------
 FROM oven/bun:alpine AS prod
 
-# Set the working directory
 WORKDIR /app
 
-# Copy only the necessary files from the build stage
-COPY --from=base /app/build ./build
-COPY --from=base /app/node_modules/ ./node_modules/
-COPY --from=base /app/package.json ./package.json
-COPY --from=base /app/prisma ./prisma/
-
-#  Ensure that NODE_ENV is production
 ENV NODE_ENV=production
 
-# Generate Prisma Client (again, in the production stage)
+# Copy build output and minimal runtime dependencies
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+
+# Re-generate Prisma client in case the target image is architecture-dependent
 RUN bunx prisma generate
 
-# Expose the port your SvelteKit app runs on (default: 3000)
 EXPOSE 3000
 
-# Set the command to start the SvelteKit server in production mode
 CMD ["bun", "run", "start"]
