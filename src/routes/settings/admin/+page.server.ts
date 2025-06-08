@@ -1,3 +1,4 @@
+import { prisma } from '$lib/server/prisma';
 import { isNullish } from '@sapphire/utilities';
 import { redirect } from '@sveltejs/kit';
 
@@ -11,5 +12,44 @@ export const load = async ({ locals }) => {
 		return redirect(302, '/dashboard');
 	}
 
-	return { user: locals.user };
+	try {
+		// Load initial statistics for the admin dashboard
+		const [totalUsers, totalProjects, totalTasks, recentUsers] = await Promise.all([
+			prisma.user.count(),
+			prisma.project.count(),
+			prisma.task.count(),
+			prisma.user.findMany({
+				take: 5,
+				orderBy: { createAt: 'desc' },
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					role: true,
+					createAt: true
+				}
+			})
+		]);
+
+		return {
+			user,
+			initialStats: {
+				totalUsers,
+				totalProjects,
+				totalTasks,
+				recentUsers
+			}
+		};
+	} catch (err) {
+		console.error('Error loading admin data:', err);
+		return {
+			user,
+			initialStats: {
+				totalUsers: 0,
+				totalProjects: 0,
+				totalTasks: 0,
+				recentUsers: []
+			}
+		};
+	}
 };

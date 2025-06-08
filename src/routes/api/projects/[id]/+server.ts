@@ -62,7 +62,8 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			return json({ error: true, message: 'Project not found' }, { status: 404 });
 		}
 
-		return json({ success: true, project });	} catch (err) {
+		return json({ success: true, project });
+	} catch (err) {
 		console.error('Error fetching project:', err);
 		return json({ error: true, message: 'Failed to fetch project' }, { status: 500 });
 	}

@@ -160,7 +160,8 @@
 				<label
 					for="contactNumber"
 					class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300"
-					>Contact Number</label
+				>
+					Contact Number</label
 				>
 				<div class="flex w-full gap-2">
 					<select

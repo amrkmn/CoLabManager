@@ -28,23 +28,49 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		if (!task) {
 			return json({ error: true, message: 'Task not found' }, { status: 404 });
 		}
+		const { title, description, status, priority } = await request.json();
 
-		const { text, status } = await request.json();
-		const validStatuses = ['Todo', 'InProgress', 'Done'];
+		// Convert status from frontend format to enum format
+		const statusMap: Record<string, string> = {
+			'todo': 'Todo',
+			'in-progress': 'InProgress', 
+			'done': 'Done'
+		};
+
+		// Convert priority from string to number
+		const priorityMap: Record<string, number> = {
+			'low': 1,
+			'medium': 2,
+			'high': 3
+		};
 
 		const updateData: any = {};
 
-		if (text !== undefined) {
-			if (!text || text.trim() === '') {
-				return json({ error: true, message: 'Task text cannot be empty' }, { status: 400 });
+		if (title !== undefined) {
+			if (!title || title.trim() === '') {
+				return json({ error: true, message: 'Task title cannot be empty' }, { status: 400 });
 			}
-			updateData.text = text.trim();
+			updateData.title = title.trim();
 		}
+
+		if (description !== undefined) {
+			updateData.description = description.trim();
+		}
+
 		if (status !== undefined) {
-			if (!validStatuses.includes(status)) {
-				return json({ error: true, message: 'Invalid status. Must be Todo, InProgress, or Done' }, { status: 400 });
+			const mappedStatus = statusMap[status];
+			if (!mappedStatus) {
+				return json({ error: true, message: 'Invalid status. Must be todo, in-progress, or done' }, { status: 400 });
 			}
-			updateData.status = status;
+			updateData.status = mappedStatus;
+		}
+
+		if (priority !== undefined) {
+			const mappedPriority = priorityMap[priority];
+			if (!mappedPriority) {
+				return json({ error: true, message: 'Invalid priority. Must be low, medium, or high' }, { status: 400 });
+			}
+			updateData.priority = mappedPriority;
 		}
 
 		const updatedTask = await prisma.task.update({
@@ -61,10 +87,21 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 						profilePictureUrl: true
 					}
 				}
-			}
-		});
+			}		});
 
-		return json({ success: true, task: updatedTask });
+		// Transform the response
+		const transformedTask = {
+			id: updatedTask.id,
+			title: updatedTask.title,
+			description: updatedTask.description,
+			status: updatedTask.status.toLowerCase().replace('inprogress', 'in-progress'),
+			priority: updatedTask.priority === 1 ? 'low' : updatedTask.priority === 2 ? 'medium' : 'high',
+			projectId: updatedTask.projectId,
+			createdAt: updatedTask.createdAt.toISOString(),
+			updatedAt: updatedTask.updatedAt.toISOString()
+		};
+
+		return json(transformedTask);
 	} catch (err) {
 		console.error('Error updating task:', err);
 		return json({ error: true, message: 'Failed to update task' }, { status: 500 });

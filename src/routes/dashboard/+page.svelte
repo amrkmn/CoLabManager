@@ -22,10 +22,38 @@
 				Welcome back, {data.user.name}!
 			</h2>
 			{#if data.projects && data.projects.length > 0}
+				<div class="mb-6">
+					<h3 class="mb-2 text-lg font-semibold text-slate-700 dark:text-slate-300">
+						Your Projects Overview
+					</h3>
+					<p class="mb-4 text-slate-600 dark:text-slate-400">
+						You have {data.projects.length}
+						{data.projects.length === 1 ? 'project' : 'projects'}. Select a project from the sidebar
+						to view its Kanban board.
+					</p>
+				</div>
+
+				<!-- General Kanban Board for all projects -->
 				<Kanban />
 			{:else}
-				<div class="mt-8 text-center text-slate-500 dark:text-slate-400">
-					You have no projects yet. Create a project to start using the Kanban board.
+				<div class="mt-8 rounded-lg bg-white p-8 text-center shadow-md dark:bg-slate-800">
+					<div class="mb-4 text-6xl">📋</div>
+					<h3 class="mb-2 text-xl font-semibold text-slate-700 dark:text-slate-300">
+						No Projects Yet
+					</h3>
+					<p class="mb-6 text-slate-600 dark:text-slate-400">
+						Create your first project to start organizing your tasks with Kanban boards.
+					</p>
+					<!-- <button
+						onclick={() => {
+							// Trigger the add project modal from SideNav
+							const addButton = document.querySelector('[data-add-project-btn]') as HTMLElement;
+							if (addButton) addButton.click();
+						}}
+						class="rounded-md bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+					>
+						Create Your First Project
+					</button> -->
 				</div>
 			{/if}
 		</main>

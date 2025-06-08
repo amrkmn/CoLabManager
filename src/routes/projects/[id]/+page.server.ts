@@ -1,12 +1,13 @@
+import { prisma } from '$lib/server/prisma.js';
 import { isNullish } from '@sapphire/utilities';
 import { redirect } from '@sveltejs/kit';
 
 export const load = async ({ locals }) => {
-	const user = locals.user;
-
-	if (isNullish(user)) {
-		return redirect(302, '/auth/login');
+	if (isNullish(locals.user)) {
+		return redirect(302, '/');
 	}
 
-	return { user: locals.user };
+	return {
+		user: locals.user
+	};
 };

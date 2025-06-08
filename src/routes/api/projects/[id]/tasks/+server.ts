@@ -35,7 +35,6 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 		if (status && ['Todo', 'InProgress', 'Done'].includes(status)) {
 			whereClause.status = status;
 		}
-
 		const tasks = await prisma.task.findMany({
 			where: whereClause,
 			orderBy: {
@@ -52,7 +51,20 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 				}
 			}
 		});
-		return json({ success: true, tasks });
+
+		// Transform the response to match the expected format
+		const transformedTasks = tasks.map((task) => ({
+			id: task.id,
+			title: task.title,
+			description: task.description,
+			status: task.status.toLowerCase().replace('inprogress', 'in-progress'), // Convert enum to lowercase with hyphen
+			priority: task.priority === 1 ? 'low' : task.priority === 2 ? 'medium' : 'high',
+			projectId: task.projectId,
+			createdAt: task.createdAt.toISOString(),
+			updatedAt: task.updatedAt.toISOString()
+		}));
+
+		return json({ success: true, tasks: transformedTasks });
 	} catch (err) {
 		console.error('Error fetching project tasks:', err);
 		return json({ error: true, message: 'Failed to fetch project tasks' }, { status: 500 });
@@ -83,19 +95,36 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		return json({ error: true, message: 'Project not found' }, { status: 404 });
 	}
 	try {
-		const { text, status } = await request.json();
+		const { title, description = '', status, priority = 'medium' } = await request.json();
 
-		if (!text || text.trim() === '') {
-			return json({ error: true, message: 'Task text is required' }, { status: 400 });
+		if (!title || title.trim() === '') {
+			return json({ error: true, message: 'Task title is required' }, { status: 400 });
 		}
 
-		const validStatuses = ['Todo', 'InProgress', 'Done'];
-		const taskStatus = status && validStatuses.includes(status) ? status : 'Todo';
+		// Convert status from frontend format to enum format
+		const statusMap: Record<string, string> = {
+			todo: 'Todo',
+			'in-progress': 'InProgress',
+			done: 'Done'
+		};
+
+		const taskStatus = status && statusMap[status] ? statusMap[status] : 'Todo';
+
+		// Convert priority from string to number
+		const priorityMap: Record<string, number> = {
+			low: 1,
+			medium: 2,
+			high: 3
+		};
+
+		const taskPriority = priorityMap[priority] || 2;
 
 		const task = await prisma.task.create({
 			data: {
-				text: text.trim(),
-				status: taskStatus,
+				title: title.trim(),
+				description: description.trim(),
+				status: taskStatus as any,
+				priority: taskPriority,
 				userId: user.id,
 				projectId: projectId
 			},
@@ -111,7 +140,19 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			}
 		});
 
-		return json({ success: true, task }, { status: 201 });
+		// Transform the response
+		const transformedTask = {
+			id: task.id,
+			title: task.title,
+			description: task.description,
+			status: task.status.toLowerCase().replace('inprogress', 'in-progress'),
+			priority: task.priority === 1 ? 'low' : task.priority === 2 ? 'medium' : 'high',
+			projectId: task.projectId,
+			createdAt: task.createdAt.toISOString(),
+			updatedAt: task.updatedAt.toISOString()
+		};
+
+		return json(transformedTask, { status: 201 });
 	} catch (err) {
 		console.error('Error creating task:', err);
 		return json({ error: true, message: 'Failed to create task' }, { status: 500 });
