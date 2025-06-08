@@ -17,6 +17,8 @@
     "dependencies": {
         "@paralleldrive/cuid2": "^2.2.2",
         "@prisma/client": "^6.9.0",
+        "@prisma/internals": "^6.9.0",
+        "@prisma/migrate": "^6.9.0",
         "@sapphire/utilities": "^3.18.2",
         "clsx": "^2.1.1",
         "minio": "^8.0.5",

@@ -1,11 +1,14 @@
+import { runMigrations } from '$lib/server/migrations';
 import {
-	validateSessionToken,
-	setSessionTokenCookie,
-	deleteSessionTokenCookie,
-	invalidateSession
+    deleteSessionTokenCookie,
+    invalidateSession,
+    setSessionTokenCookie,
+    validateSessionToken
 } from './lib/server/session';
 
 import type { Handle } from '@sveltejs/kit';
+
+await runMigrations();
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const token = event.cookies.get('session') ?? null;

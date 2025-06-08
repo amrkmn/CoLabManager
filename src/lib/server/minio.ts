@@ -10,7 +10,7 @@ const config = {
 		host: Bun.env.S3_HOST
 	}
 };
-const BUCKET_NAME = process.env.S3_BUCKET || 'pta';
+const BUCKET_NAME = Bun.env.S3_BUCKET || 'pta';
 
 export const MinioClient = new Client({
 	endPoint: config.s3.endpoint,
