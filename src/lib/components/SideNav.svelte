@@ -149,7 +149,7 @@
 	</div>
 
 	<!-- Settings at Bottom -->
-	<div class="mt-auto border-t border-slate-200 pt-2 dark:border-slate-700">
+	<!-- <div class="mt-auto border-t border-slate-200 pt-2 dark:border-slate-700">
 		<ul class="!m-0 flex !list-none flex-col gap-1 !p-0">
 			<li>
 				<a
@@ -166,7 +166,7 @@
 				</a>
 			</li>
 		</ul>
-	</div>
+	</div> -->
 </nav>
 
 <!-- Add Project Modal -->
