@@ -44,16 +44,6 @@
 					<p class="mb-6 text-slate-600 dark:text-slate-400">
 						Create your first project to start organizing your tasks with Kanban boards.
 					</p>
-					<!-- <button
-						onclick={() => {
-							// Trigger the add project modal from SideNav
-							const addButton = document.querySelector('[data-add-project-btn]') as HTMLElement;
-							if (addButton) addButton.click();
-						}}
-						class="rounded-md bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-					>
-						Create Your First Project
-					</button> -->
 				</div>
 			{/if}
 		</main>
