@@ -1,8 +1,6 @@
 # -------- Build Stage --------
 FROM oven/bun:alpine AS builder
 
-LABEL org.opencontainers.image.source=https://github.com/amrkmn/PTA
-
 WORKDIR /app
 
 # Copy only necessary files for dependency installation
