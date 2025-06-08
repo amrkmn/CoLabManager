@@ -1,6 +1,5 @@
-import { getPublicURL, uploadToS3 } from '$lib/server/minio'; // Assuming you have a MinIO client setup
+import { getPublicURL, uploadToS3 } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
-import { createId } from '@paralleldrive/cuid2';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
 import path from 'path';
@@ -11,7 +10,7 @@ const UpdateProfile = z.object({
 	email: z.string().email(),
 	password: z.string().optional(),
 	contactNumber: z.string(),
-	profilePicture: z.any().optional() // Allow profile picture as an optional field
+	profilePicture: z.any().optional()
 });
 
 export const GET = async ({ locals }) => {
@@ -39,7 +38,6 @@ export const PUT = async ({ request, locals }) => {
 	const contactNumber = formData.get('contactNumber') as string;
 	const profilePicture = (formData.get('profilePicture') as File) || undefined;
 
-	// Validate the input
 	const parsed = UpdateProfile.parse({
 		name,
 		email,
@@ -50,18 +48,15 @@ export const PUT = async ({ request, locals }) => {
 
 	let profilePictureUrl: string | undefined;
 
-	// Handle profile picture upload to MinIO
 	if (profilePicture && profilePicture.size > 0) {
 		const fileName = `${locals.user.id}/pfp/image${path.extname(profilePicture.name)}`;
 		const fileBuffer = Buffer.from(await profilePicture.arrayBuffer());
 
 		await uploadToS3(fileName, fileBuffer, profilePicture.type);
 
-		// Generate the URL for the uploaded file
 		profilePictureUrl = getPublicURL(fileName);
 	}
 
-	// Update the user in the database
 	await prisma.user.update({
 		where: { id: locals.user.id },
 		data: {

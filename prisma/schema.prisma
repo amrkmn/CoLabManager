@@ -13,6 +13,12 @@ enum Role {
     Admin
 }
 
+enum KanbanColumnStatus {
+    Todo
+    InProgress
+    Done
+}
+
 model User {
     id                String   @id @default(cuid())
     name              String
@@ -23,12 +29,11 @@ model User {
     profilePictureUrl String?
     createAt          DateTime @default(now())
 
-    projects        Project[]        @relation("CreatedProjects")
-    tasks           Task[]
-    files           File[]
-    messages        Message[]
-    progressUpdates ProgressUpdate[]
-    sessions        Session[]
+    projects Project[]
+    tasks    Task[]
+    files    File[]
+    messages Message[]
+    sessions Session[]
 }
 
 model Project {
@@ -38,37 +43,23 @@ model Project {
     createdAt   DateTime @default(now())
     createdBy   String
 
-    user            User             @relation("CreatedProjects", fields: [createdBy], references: [id])
-    tasks           Task[]
-    files           File[]
-    messages        Message[]
-    progressUpdates ProgressUpdate[]
-    columns         KanbanColumn[]
-}
-
-model KanbanColumn {
-    id        String @id @default(cuid())
-    name      String
-    order     Int
-    projectId String
-
-    project Project @relation(fields: [projectId], references: [id])
-    tasks   Task[]
+    user     User      @relation(fields: [createdBy], references: [id])
+    tasks    Task[]
+    files    File[]
+    messages Message[]
 }
 
 model Task {
-    id          String    @id @default(cuid())
-    name        String
-    description String?
-    dueDate     DateTime?
-    assignTo    String
-    columnId    String
+    id        String             @id @default(cuid())
+    text      String
+    status    KanbanColumnStatus @default(Todo)
+    createdAt DateTime           @default(now())
+    userId    String
+    projectId String
 
-    user            User             @relation(fields: [assignTo], references: [id])
-    column          KanbanColumn     @relation(fields: [columnId], references: [id])
-    progressUpdates ProgressUpdate[]
-    Project         Project?         @relation(fields: [projectId], references: [id])
-    projectId       String?
+    user    User    @relation(fields: [userId], references: [id])
+    project Project @relation(fields: [projectId], references: [id])
+    file    File[]
 }
 
 model File {
@@ -78,9 +69,11 @@ model File {
     uploadedAt DateTime @default(now())
     uploadedBy String
     projectId  String
+    taskId     String?
 
     user    User    @relation(fields: [uploadedBy], references: [id])
     project Project @relation(fields: [projectId], references: [id])
+    task    Task?   @relation(fields: [taskId], references: [id])
 }
 
 model Message {
@@ -92,19 +85,6 @@ model Message {
 
     user    User    @relation(fields: [senderId], references: [id])
     project Project @relation(fields: [projectId], references: [id])
-}
-
-model ProgressUpdate {
-    id        String   @id @default(cuid())
-    text      String
-    updatedAt DateTime @default(now())
-    updatedBy String
-    projectId String
-    taskId    String
-
-    user    User    @relation(fields: [updatedBy], references: [id])
-    project Project @relation(fields: [projectId], references: [id])
-    task    Task    @relation(fields: [taskId], references: [id])
 }
 
 model Session {

@@ -21,9 +21,13 @@
 			<h2 class="mt-0 mb-4 text-2xl font-semibold text-slate-600 dark:text-slate-400">
 				Welcome back, {data.user.name}!
 			</h2>
-			<p class="text-slate-600 dark:text-slate-400">Here's what's happening today:</p>
-			<!-- Kanban Component -->
-			<Kanban />
+			{#if data.projects && data.projects.length > 0}
+				<Kanban />
+			{:else}
+				<div class="mt-8 text-center text-slate-500 dark:text-slate-400">
+					You have no projects yet. Create a project to start using the Kanban board.
+				</div>
+			{/if}
 		</main>
 	</div>
 </div>
