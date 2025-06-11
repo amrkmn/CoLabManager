@@ -1,6 +1,7 @@
-import type { RequestHandler } from '@sveltejs/kit';
-import { json, error } from '@sveltejs/kit';
+import { uploadToS3 } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
+import type { RequestHandler } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 
 // GET /api/projects/[id]/tasks - Get all tasks for a specific project
 export const GET: RequestHandler = async ({ params, locals, url }) => {
@@ -95,7 +96,27 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		return json({ error: true, message: 'Project not found' }, { status: 404 });
 	}
 	try {
-		const { title, description = '', status, priority = 'medium' } = await request.json();
+		let title = '',
+			description = '',
+			status = 'todo',
+			priority = 'medium',
+			file = null;
+		let fileRecord = null;
+		const contentType = request.headers.get('content-type') || '';
+		if (contentType.includes('multipart/form-data')) {
+			const formData = await request.formData();
+			title = (formData.get('title') as string) || '';
+			description = (formData.get('description') as string) || '';
+			status = (formData.get('status') as string) || 'todo';
+			priority = (formData.get('priority') as string) || 'medium';
+			file = formData.get('file');
+		} else {
+			const body = await request.json();
+			title = body.title || '';
+			description = body.description || '';
+			status = body.status || 'todo';
+			priority = body.priority || 'medium';
+		}
 
 		if (!title || title.trim() === '') {
 			return json({ error: true, message: 'Task title is required' }, { status: 400 });
@@ -119,37 +140,72 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 
 		const taskPriority = priorityMap[priority] || 2;
 
-		const task = await prisma.task.create({
-			data: {
-				title: title.trim(),
-				description: description.trim(),
-				status: taskStatus as any,
-				priority: taskPriority,
-				userId: user.id,
-				projectId: projectId
-			},
-			include: {
-				file: true,
-				user: {
-					select: {
-						id: true,
-						name: true,
-						profilePictureUrl: true
+		// Handle file upload if present
+		let createdTask;
+		if (file && typeof File !== 'undefined' && file instanceof File && file.size > 0) {
+			const fileName = `${projectId}/tasks/${Date.now()}_${file.name}`;
+			const buffer = Buffer.from(await file.arrayBuffer());
+			const s3Path = await uploadToS3(fileName, buffer, file.type);
+			createdTask = await prisma.task.create({
+				data: {
+					title: title.trim(),
+					description: description.trim(),
+					status: taskStatus as any,
+					priority: taskPriority,
+					userId: user.id,
+					projectId: projectId,
+					file: {
+						create: {
+							name: file.name,
+							path: s3Path,
+							uploadedBy: user.id,
+							projectId: projectId
+						}
+					}
+				},
+				include: {
+					file: true,
+					user: {
+						select: {
+							id: true,
+							name: true,
+							profilePictureUrl: true
+						}
 					}
 				}
-			}
-		});
+			});
+		} else {
+			createdTask = await prisma.task.create({
+				data: {
+					title: title.trim(),
+					description: description.trim(),
+					status: taskStatus as any,
+					priority: taskPriority,
+					userId: user.id,
+					projectId: projectId
+				},
+				include: {
+					file: true,
+					user: {
+						select: {
+							id: true,
+							name: true,
+							profilePictureUrl: true
+						}
+					}
+				}
+			});
+		}
 
-		// Transform the response
 		const transformedTask = {
-			id: task.id,
-			title: task.title,
-			description: task.description,
-			status: task.status.toLowerCase().replace('inprogress', 'in-progress'),
-			priority: task.priority === 1 ? 'low' : task.priority === 2 ? 'medium' : 'high',
-			projectId: task.projectId,
-			createdAt: task.createdAt.toISOString(),
-			updatedAt: task.updatedAt.toISOString()
+			id: createdTask.id,
+			title: createdTask.title,
+			description: createdTask.description,
+			status: createdTask.status.toLowerCase().replace('inprogress', 'in-progress'),
+			priority: createdTask.priority === 1 ? 'low' : createdTask.priority === 2 ? 'medium' : 'high',
+			projectId: createdTask.projectId,
+			createdAt: createdTask.createdAt.toISOString(),
+			updatedAt: createdTask.updatedAt.toISOString()
 		};
 
 		return json(transformedTask, { status: 201 });

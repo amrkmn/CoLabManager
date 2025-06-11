@@ -3,7 +3,14 @@
 	import SideNav from '$lib/components/SideNav.svelte';
 	import Kanban from '$lib/components/Kanban.svelte';
 	import { cn } from '$lib/utils/style';
+	import { invalidate } from '$app/navigation';
+
 	export let data;
+
+	// Call this after a project is created to refresh dashboard data
+	async function handleProjectCreated() {
+		await invalidate('app:projects');
+	}
 </script>
 
 <div

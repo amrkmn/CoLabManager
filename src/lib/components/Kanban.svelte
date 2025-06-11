@@ -31,6 +31,16 @@
 		'in-progress': '',
 		done: ''
 	});
+	let newTaskFiles: Record<string, File | null> = $state({
+		todo: null,
+		'in-progress': null,
+		done: null
+	});
+	let newTaskPriorities: Record<string, 'low' | 'medium' | 'high'> = $state({
+		todo: 'medium',
+		'in-progress': 'medium',
+		done: 'medium'
+	});
 	let isLoading = $state(false);
 	let error = $state('');
 
@@ -105,27 +115,24 @@
 			return;
 		}
 		try {
-			const taskData = {
-				title: newTasks[columnId].trim(),
-				description: '',
-				status: columnId,
-				priority: 'medium' as const
-			};
-
-			// For project-specific kanban, use project API. For general kanban, we need a project to create a task
 			if (!projectId) {
 				error = 'Cannot create tasks in general view. Please select a specific project.';
 				return;
 			}
 
 			const endpoint = `/api/projects/${projectId}/tasks`;
+			const formData = new FormData();
+			formData.append('title', newTasks[columnId].trim());
+			formData.append('description', '');
+			formData.append('status', columnId);
+			formData.append('priority', newTaskPriorities[columnId]);
+			if (newTaskFiles[columnId]) {
+				formData.append('file', newTaskFiles[columnId]);
+			}
 
 			const response = await fetch(endpoint, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(taskData)
+				body: formData
 			});
 
 			const result = await response.json();
@@ -144,6 +151,8 @@
 				};
 			} // Clear the input
 			newTasks[columnId] = '';
+			newTaskFiles[columnId] = null;
+			newTaskPriorities[columnId] = 'medium';
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to add task';
 			console.error('Error adding task:', err);
@@ -307,6 +316,46 @@
 							'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
 						)}
 					/>
+					<div class="flex items-center gap-2">
+						<select
+							bind:value={newTaskPriorities[column.id]}
+							class="rounded border bg-slate-100 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+						>
+							<option value="low">🟢 Low</option>
+							<option value="medium">🟡 Medium</option>
+							<option value="high">🔴 High</option>
+						</select>
+						<label
+							class="flex cursor-pointer items-center gap-1 rounded border border-slate-300 bg-slate-100 px-2 py-1 transition hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-5 w-5 text-blue-600"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+								/></svg
+							>
+							<span class="hidden text-xs sm:inline">File</span>
+							<input
+								type="file"
+								accept="*"
+								onchange={(e) =>
+									(newTaskFiles[column.id] = (e.target as HTMLInputElement).files?.[0] || null)}
+								class="hidden"
+							/>
+						</label>
+						{#if newTaskFiles[column.id]}
+							<span class="max-w-[100px] truncate text-xs text-slate-500 dark:text-slate-400"
+								>{newTaskFiles[column.id]?.name}</span
+							>
+						{/if}
+					</div>
 					<button
 						type="submit"
 						class={cn(
