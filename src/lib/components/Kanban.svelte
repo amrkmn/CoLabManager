@@ -49,6 +49,7 @@
 	});
 	let isLoading = $state(false);
 	let error = $state('');
+	let editingPriority: string | null = $state(null); // Track which task's priority is being edited
 
 	onMount(() => {
 		if (projectId) {
@@ -56,6 +57,14 @@
 		} else {
 			loadGeneralTasks();
 		}
+
+		// Add document click listener to close priority editor
+		document.addEventListener('click', handleDocumentClick);
+
+		// Cleanup on unmount
+		return () => {
+			document.removeEventListener('click', handleDocumentClick);
+		};
 	});
 
 	async function loadProjectTasks() {
@@ -112,7 +121,6 @@
 				columns[columnIndex].tasks.push(task);
 			}
 		});
-		console.log(columns);
 	}
 
 	async function addTask(event: Event, columnId: 'todo' | 'in-progress' | 'done') {
@@ -240,6 +248,42 @@
 		}
 	}
 
+	async function updateTaskPriority(taskId: string, newPriority: 'low' | 'medium' | 'high') {
+		try {
+			const endpoint = projectId
+				? `/api/projects/${projectId}/tasks/${taskId}`
+				: `/api/projects/tasks/${taskId}`;
+
+			const response = await fetch(endpoint, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ priority: newPriority })
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.message || 'Failed to update task priority');
+			}
+
+			// Update the task in the columns
+			const updatedTask = result;
+			columns = columns.map((col) => ({
+				...col,
+				tasks: col.tasks.map((task) =>
+					task.id === taskId ? { ...task, priority: updatedTask.priority } : task
+				)
+			}));
+
+			editingPriority = null; // Close the priority editor
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to update task priority';
+			console.error('Error updating task priority:', err);
+		}
+	}
+
 	function handleDragStart(event: DragEvent, task: Task) {
 		if (event.dataTransfer) {
 			event.dataTransfer.setData('text/plain', task.id);
@@ -259,6 +303,14 @@
 		const taskId = event.dataTransfer?.getData('text/plain');
 		if (taskId) {
 			moveTask(taskId, columnId);
+		}
+	}
+
+	// Close priority editor when clicking outside
+	function handleDocumentClick(event: MouseEvent) {
+		const target = event.target as Element;
+		if (!target.closest('.priority-editor')) {
+			editingPriority = null;
 		}
 	}
 </script>
@@ -311,18 +363,44 @@
 							<div class="flex items-start justify-between">
 								<span class="font-medium">{task.title}</span>
 								{#if task.priority}
-									<span
-										class={cn(
-											'rounded-full px-2 py-1 text-xs',
-											task.priority === 'high'
-												? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-												: task.priority === 'medium'
-													? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-													: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-										)}
-									>
-										{task.priority}
-									</span>
+									{#if editingPriority === task.id}
+										<select
+											value={task.priority}
+											onchange={(e) =>
+												updateTaskPriority(
+													task.id,
+													(e.target as HTMLSelectElement).value as 'low' | 'medium' | 'high'
+												)}
+											onblur={() => (editingPriority = null)}
+											class="priority-editor rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+										>
+											<option value="low" class="dark:bg-slate-800 dark:text-white">🟢 Low</option>
+											<option value="medium" class="dark:bg-slate-800 dark:text-white"
+												>🟡 Medium</option
+											>
+											<option value="high" class="dark:bg-slate-800 dark:text-white">🔴 High</option
+											>
+										</select>
+									{:else}
+										<button
+											onclick={(e) => {
+												e.stopPropagation();
+												editingPriority = task.id;
+											}}
+											class={cn(
+												'rounded-full px-2 py-1 text-xs transition-colors hover:opacity-80',
+												task.priority === 'high'
+													? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+													: task.priority === 'medium'
+														? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+														: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+											)}
+											title="Click to change priority"
+										>
+											{task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}
+											{task.priority}
+										</button>
+									{/if}
 								{/if}
 							</div>
 							{#if task.description}
@@ -366,7 +444,10 @@
 							>
 								<span>{new Date(task.createdAt).toLocaleDateString()}</span>
 								<button
-									onclick={() => deleteTask(task.id)}
+									onclick={(e) => {
+										e.stopPropagation();
+										deleteTask(task.id);
+									}}
 									class="flex items-center gap-1 rounded px-2 py-1 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30"
 									title="Delete task"
 									aria-label="Delete task"
