@@ -49,7 +49,7 @@ export const PUT = async ({ request, locals }) => {
 	let profilePictureUrl: string | undefined;
 
 	if (profilePicture && profilePicture.size > 0) {
-		const fileName = `${locals.user.id}/pfp/image${path.extname(profilePicture.name)}`;
+		const fileName = `users/${locals.user.id}/pfp/image${path.extname(profilePicture.name)}`;
 		const fileBuffer = Buffer.from(await profilePicture.arrayBuffer());
 
 		await uploadToS3(fileName, fileBuffer, profilePicture.type);

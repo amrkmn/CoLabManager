@@ -1,6 +1,7 @@
-import type { RequestHandler } from '@sveltejs/kit';
-import { json, error } from '@sveltejs/kit';
+import { getPublicURL } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
+import type { RequestHandler } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 
 // PUT /api/projects/[id]/tasks/[taskId] - Update a task
 export const PUT: RequestHandler = async ({ params, request, locals }) => {
@@ -32,16 +33,16 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 
 		// Convert status from frontend format to enum format
 		const statusMap: Record<string, string> = {
-			'todo': 'Todo',
-			'in-progress': 'InProgress', 
-			'done': 'Done'
+			todo: 'Todo',
+			'in-progress': 'InProgress',
+			done: 'Done'
 		};
 
 		// Convert priority from string to number
 		const priorityMap: Record<string, number> = {
-			'low': 1,
-			'medium': 2,
-			'high': 3
+			low: 1,
+			medium: 2,
+			high: 3
 		};
 
 		const updateData: any = {};
@@ -60,7 +61,10 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		if (status !== undefined) {
 			const mappedStatus = statusMap[status];
 			if (!mappedStatus) {
-				return json({ error: true, message: 'Invalid status. Must be todo, in-progress, or done' }, { status: 400 });
+				return json(
+					{ error: true, message: 'Invalid status. Must be todo, in-progress, or done' },
+					{ status: 400 }
+				);
 			}
 			updateData.status = mappedStatus;
 		}
@@ -68,7 +72,10 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		if (priority !== undefined) {
 			const mappedPriority = priorityMap[priority];
 			if (!mappedPriority) {
-				return json({ error: true, message: 'Invalid priority. Must be low, medium, or high' }, { status: 400 });
+				return json(
+					{ error: true, message: 'Invalid priority. Must be low, medium, or high' },
+					{ status: 400 }
+				);
 			}
 			updateData.priority = mappedPriority;
 		}
@@ -87,8 +94,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 						profilePictureUrl: true
 					}
 				}
-			}		});
-
+			}
+		});
 		// Transform the response
 		const transformedTask = {
 			id: updatedTask.id,
@@ -98,7 +105,13 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			priority: updatedTask.priority === 1 ? 'low' : updatedTask.priority === 2 ? 'medium' : 'high',
 			projectId: updatedTask.projectId,
 			createdAt: updatedTask.createdAt.toISOString(),
-			updatedAt: updatedTask.updatedAt.toISOString()
+			updatedAt: updatedTask.updatedAt.toISOString(),
+			files: updatedTask.file.map((file) => ({
+				id: file.id,
+				name: file.name,
+				path: getPublicURL(file.path),
+				uploadedAt: file.uploadedAt.toISOString()
+			}))
 		};
 
 		return json(transformedTask);

@@ -1,5 +1,4 @@
 import { prisma } from '$lib/server/prisma';
-import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';

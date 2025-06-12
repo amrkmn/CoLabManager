@@ -1,5 +1,6 @@
-import { uploadToS3 } from '$lib/server/minio';
+import { getPublicURL, uploadToS3 } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
+import { createId } from '@paralleldrive/cuid2';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 
@@ -51,9 +52,7 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 					}
 				}
 			}
-		});
-
-		// Transform the response to match the expected format
+		}); // Transform the response to match the expected format
 		const transformedTasks = tasks.map((task) => ({
 			id: task.id,
 			title: task.title,
@@ -62,7 +61,13 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 			priority: task.priority === 1 ? 'low' : task.priority === 2 ? 'medium' : 'high',
 			projectId: task.projectId,
 			createdAt: task.createdAt.toISOString(),
-			updatedAt: task.updatedAt.toISOString()
+			updatedAt: task.updatedAt.toISOString(),
+			files: task.file.map((file) => ({
+				id: file.id,
+				name: file.name,
+				path: getPublicURL(file.path),
+				uploadedAt: file.uploadedAt.toISOString()
+			}))
 		}));
 
 		return json({ success: true, tasks: transformedTasks });
@@ -101,7 +106,6 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			status = 'todo',
 			priority = 'medium',
 			file = null;
-		let fileRecord = null;
 		const contentType = request.headers.get('content-type') || '';
 		if (contentType.includes('multipart/form-data')) {
 			const formData = await request.formData();
@@ -143,7 +147,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		// Handle file upload if present
 		let createdTask;
 		if (file && typeof File !== 'undefined' && file instanceof File && file.size > 0) {
-			const fileName = `${projectId}/tasks/${Date.now()}_${file.name}`;
+			const fileName = `projects/${projectId}/tasks/${createId()}_${file.name}`;
 			const buffer = Buffer.from(await file.arrayBuffer());
 			const s3Path = await uploadToS3(fileName, buffer, file.type);
 			createdTask = await prisma.task.create({
@@ -196,7 +200,6 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 				}
 			});
 		}
-
 		const transformedTask = {
 			id: createdTask.id,
 			title: createdTask.title,
@@ -205,7 +208,16 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			priority: createdTask.priority === 1 ? 'low' : createdTask.priority === 2 ? 'medium' : 'high',
 			projectId: createdTask.projectId,
 			createdAt: createdTask.createdAt.toISOString(),
-			updatedAt: createdTask.updatedAt.toISOString()
+			updatedAt: createdTask.updatedAt.toISOString(),
+			files: createdTask.file.map((file) => {
+				console.log(file);
+				return {
+					id: file.id,
+					name: file.name,
+					path: getPublicURL(file.path),
+					uploadedAt: file.uploadedAt.toISOString()
+				};
+			})
 		};
 
 		return json(transformedTask, { status: 201 });

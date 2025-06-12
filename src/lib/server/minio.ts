@@ -41,6 +41,12 @@ export async function uploadToS3(
 }
 
 export const getPublicURL = (objectName: string) => {
+	if (objectName.startsWith(`/${BUCKET_NAME}/`)) {
+		objectName = objectName.substring(BUCKET_NAME.length + 2);
+	}
+	if (objectName.startsWith('/')) {
+		objectName = objectName.substring(1);
+	}
 	const url = `${config.s3.host}/${BUCKET_NAME}/${objectName}`;
 	return url;
 };

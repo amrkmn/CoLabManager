@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { cn } from '$lib/utils/style';
 	import type { User } from '@prisma/client';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 
 	export let user: Omit<User, 'password'>;
 

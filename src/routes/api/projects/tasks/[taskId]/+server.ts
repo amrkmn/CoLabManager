@@ -1,4 +1,5 @@
 import { prisma } from '$lib/server/prisma.js';
+import { getPublicURL } from '$lib/server/minio.js';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -35,16 +36,16 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 
 		// Convert status from frontend format to enum format
 		const statusMap: Record<string, string> = {
-			'todo': 'Todo',
-			'in-progress': 'InProgress', 
-			'done': 'Done'
+			todo: 'Todo',
+			'in-progress': 'InProgress',
+			done: 'Done'
 		};
 
 		// Convert priority from string to number
 		const priorityMap: Record<string, number> = {
-			'low': 1,
-			'medium': 2,
-			'high': 3
+			low: 1,
+			medium: 2,
+			high: 3
 		};
 
 		const updateData: any = {};
@@ -70,7 +71,6 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 				updateData.priority = mappedPriority;
 			}
 		}
-
 		// Update the task
 		const updatedTask = await prisma.task.update({
 			where: { id: taskId },
@@ -81,10 +81,10 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 						id: true,
 						name: true
 					}
-				}
+				},
+				file: true
 			}
 		});
-
 		return json({
 			id: updatedTask.id,
 			title: updatedTask.title,
@@ -94,7 +94,13 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			projectId: updatedTask.projectId,
 			projectName: updatedTask.project.name,
 			createdAt: updatedTask.createdAt.toISOString(),
-			updatedAt: updatedTask.updatedAt.toISOString()
+			updatedAt: updatedTask.updatedAt.toISOString(),
+			files: updatedTask.file.map((file) => ({
+				id: file.id,
+				name: file.name,
+				path: getPublicURL(file.path),
+				uploadedAt: file.uploadedAt.toISOString()
+			}))
 		});
 	} catch (error) {
 		console.error('Error updating task:', error);

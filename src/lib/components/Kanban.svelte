@@ -13,6 +13,12 @@
 		projectName?: string;
 		createdAt: string;
 		updatedAt: string;
+		files?: Array<{
+			id: string;
+			name: string;
+			path: string;
+			uploadedAt: string;
+		}>;
 	}
 
 	interface KanbanColumn {
@@ -106,6 +112,7 @@
 				columns[columnIndex].tasks.push(task);
 			}
 		});
+		console.log(columns);
 	}
 
 	async function addTask(event: Event, columnId: 'todo' | 'in-progress' | 'done') {
@@ -152,7 +159,7 @@
 			} // Clear the input
 			newTasks[columnId] = '';
 			newTaskFiles[columnId] = null;
-			newTaskPriorities[columnId] = 'medium';
+			newTaskPriorities[columnId] = 'low';
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to add task';
 			console.error('Error adding task:', err);
@@ -199,6 +206,37 @@
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to move task';
 			console.error('Error moving task:', err);
+		}
+	}
+
+	async function deleteTask(taskId: string) {
+		if (!confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+			return;
+		}
+
+		try {
+			const endpoint = projectId
+				? `/api/projects/${projectId}/tasks/${taskId}`
+				: `/api/projects/tasks/${taskId}`;
+
+			const response = await fetch(endpoint, {
+				method: 'DELETE'
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.message || 'Failed to delete task');
+			}
+
+			// Remove task from all columns
+			columns = columns.map((col) => ({
+				...col,
+				tasks: col.tasks.filter((task) => task.id !== taskId)
+			}));
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to delete task';
+			console.error('Error deleting task:', err);
 		}
 	}
 
@@ -296,10 +334,58 @@
 									<span class="truncate">{task.projectName}</span>
 								</div>
 							{/if}
+							{#if task.files && task.files.length > 0}
+								<div class="flex flex-wrap gap-1">
+									{#each task.files as file}
+										<a
+											href={file.path}
+											target="_blank"
+											class="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												class="h-3 w-3"
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke="currentColor"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+												/>
+											</svg>
+											<span class="max-w-[80px] truncate">{file.name}</span>
+										</a>
+									{/each}
+								</div>
+							{/if}
 							<div
 								class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"
 							>
 								<span>{new Date(task.createdAt).toLocaleDateString()}</span>
+								<button
+									onclick={() => deleteTask(task.id)}
+									class="flex items-center gap-1 rounded px-2 py-1 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30"
+									title="Delete task"
+									aria-label="Delete task"
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										class="h-3 w-3"
+										fill="none"
+										viewBox="0 0 24 24"
+										stroke="currentColor"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+										/>
+									</svg>
+								</button>
 							</div>
 						</li>
 					{/each}

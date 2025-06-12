@@ -1,4 +1,5 @@
 import { prisma } from '$lib/server/prisma.js';
+import { getPublicURL } from '$lib/server/minio.js';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -7,7 +8,6 @@ export const GET: RequestHandler = async ({ locals }) => {
 		if (!locals.user) {
 			return json({ error: true, message: 'Unauthorized' }, { status: 401 });
 		}
-
 		// Get all tasks from all projects belonging to the user
 		const tasks = await prisma.task.findMany({
 			where: {
@@ -21,13 +21,13 @@ export const GET: RequestHandler = async ({ locals }) => {
 						id: true,
 						name: true
 					}
-				}
+				},
+				file: true
 			},
 			orderBy: {
 				createdAt: 'desc'
 			}
 		});
-
 		return json({
 			success: true,
 			tasks: tasks.map((task) => ({
@@ -39,7 +39,13 @@ export const GET: RequestHandler = async ({ locals }) => {
 				projectId: task.projectId,
 				projectName: task.project.name,
 				createdAt: task.createdAt.toISOString(),
-				updatedAt: task.updatedAt.toISOString()
+				updatedAt: task.updatedAt.toISOString(),
+				files: task.file.map((file) => ({
+					id: file.id,
+					name: file.name,
+					path: getPublicURL(file.path),
+					uploadedAt: file.uploadedAt.toISOString()
+				}))
 			}))
 		});
 	} catch (error) {
