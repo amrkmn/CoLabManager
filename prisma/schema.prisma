@@ -13,6 +13,11 @@ enum Role {
     Admin
 }
 
+enum ProjectMemberRole {
+    Member
+    Admin
+}
+
 enum KanbanColumnStatus {
     Todo
     InProgress
@@ -28,12 +33,16 @@ model User {
     role              Role     @default(User)
     profilePictureUrl String?
     createAt          DateTime @default(now())
+    emailVerified     Boolean  @default(false)
+    verificationToken String?
+    inviteToken       String?
 
-    projects Project[]
-    tasks    Task[]
-    files    File[]
-    messages Message[]
-    sessions Session[]
+    projects           Project[]
+    tasks              Task[]
+    files              File[]
+    messages           Message[]
+    sessions           Session[]
+    projectMemberships ProjectMember[] // <-- new relation for collaboration
 }
 
 model Project {
@@ -43,10 +52,11 @@ model Project {
     createdAt   DateTime @default(now())
     createdBy   String
 
-    user     User      @relation(fields: [createdBy], references: [id])
+    user     User            @relation(fields: [createdBy], references: [id])
     tasks    Task[]
     files    File[]
     messages Message[]
+    members  ProjectMember[] // <-- new relation for collaboration
 }
 
 model Task {
@@ -96,4 +106,16 @@ model Session {
     expiresAt DateTime
 
     user User @relation(fields: [userId], references: [id])
+}
+
+model ProjectMember {
+    id        String            @id @default(cuid())
+    userId    String
+    projectId String
+    role      ProjectMemberRole // e.g., "member", "admin", etc.
+
+    user    User    @relation(fields: [userId], references: [id])
+    project Project @relation(fields: [projectId], references: [id])
+
+    @@unique([userId, projectId])
 }

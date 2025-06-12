@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/style';
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	
 	let email = '';
 	let password = '';
 	let errors: string[] = [];
 	let loading = false;
+	let successMessage = '';
 
 	const errorMessages: Record<string, string> = {
 		email_required: 'Email is required.',
@@ -11,8 +15,22 @@
 		password_required: 'Password is required.',
 		password_too_short: 'Password must be at least 6 characters.',
 		invalid_credentials: 'Invalid email or password.',
-		internal_error: 'Something went wrong. Please try again later.'
+		email_not_verified: 'Please verify your email address before logging in. Check your inbox for a verification link.',
+		internal_error: 'Something went wrong. Please try again later.',
+		invalid_invite: 'Invalid or expired invitation link.',
+		missing_token: 'Missing invitation token.'
 	};
+
+	onMount(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		if (urlParams.get('verified') === 'true') {
+			successMessage = 'Email verified successfully! You can now log in.';
+		}
+		if (urlParams.get('error')) {
+			const errorCode = urlParams.get('error');
+			errors = [errorMessages[errorCode!] || 'An error occurred.'];
+		}
+	});
 
 	async function handleLogin() {
 		loading = true;
@@ -63,6 +81,12 @@
 			<h1 class="mb-6 text-center text-3xl font-semibold text-slate-800 dark:text-white">
 				Sign In
 			</h1>
+
+			{#if successMessage}
+				<div class="mb-4 rounded-md border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
+					<p class="text-sm text-green-600 dark:text-green-400">{successMessage}</p>
+				</div>
+			{/if}
 
 			{#if errors.length > 0}
 				<div class="mb-4">

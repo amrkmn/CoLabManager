@@ -18,7 +18,9 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		const project = await prisma.project.findFirst({
 			where: {
 				id: projectId,
-				createdBy: user.id
+				members: {
+					some: { userId: user.id }
+				}
 			},
 			include: {
 				tasks: {
@@ -88,11 +90,13 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			return json({ error: true, message: 'Project name is required' }, { status: 400 });
 		}
 
-		// Check if project exists and user owns it
+		// Check if project exists and user is a member
 		const existingProject = await prisma.project.findFirst({
 			where: {
 				id: projectId,
-				createdBy: user.id
+				members: {
+					some: { userId: user.id, role: 'Admin' }
+				}
 			}
 		});
 
@@ -138,11 +142,13 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 	}
 
 	try {
-		// Check if project exists and user owns it
+		// Check if project exists and user is an Admin member
 		const existingProject = await prisma.project.findFirst({
 			where: {
 				id: projectId,
-				createdBy: user.id
+				members: {
+					some: { userId: user.id, role: 'Admin' }
+				}
 			}
 		});
 
@@ -152,6 +158,10 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 
 		// Delete all related data first (due to foreign key constraints)
 		await prisma.$transaction([
+			// Delete project members
+			prisma.projectMember.deleteMany({
+				where: { projectId }
+			}),
 			// Delete files associated with tasks in this project
 			prisma.file.deleteMany({
 				where: {

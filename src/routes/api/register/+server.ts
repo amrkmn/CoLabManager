@@ -1,7 +1,9 @@
 import { prisma } from '$lib/server/prisma';
+import { sendEmail, generateVerificationEmailHtml } from '$lib/server/email';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
+import { createId } from '@paralleldrive/cuid2';
 import type { RequestHandler } from './$types';
 
 const Register = z.object({
@@ -20,18 +22,32 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (!isNullish(checkUser)) {
 			return json({ error: true, message: ['email_already_used'] }, { status: 409 });
 		}
-
 		const hashedPassword = await Bun.password.hash(password);
+		const verificationToken = createId();
+		
 		const user = await prisma.user.create({
 			data: {
 				name,
 				email,
 				contactNumber,
-				password: hashedPassword
+				password: hashedPassword,
+				verificationToken,
+				emailVerified: false
 			}
 		});
 
-		return json(user);
+		// Send verification email
+		const verificationUrl = `${Bun.env.APP_URL || 'http://localhost:5173'}/auth/verify?token=${verificationToken}`;
+		await sendEmail({
+			to: email,
+			subject: 'Verify your email - PTA',
+			html: generateVerificationEmailHtml(name, verificationUrl)
+		});
+
+		return json({ 
+			success: true, 
+			message: 'Registration successful! Please check your email to verify your account.' 
+		});
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			const formatted = Object.values(error.flatten().fieldErrors).flat();

@@ -1,7 +1,9 @@
-<script lang="ts">	import Header from '$lib/components/Header.svelte';
-	import SideNav from '$lib/components/SideNav.svelte';
+<script lang="ts">
 	import { page } from '$app/state';
+	import Header from '$lib/components/Header.svelte';
 	import Kanban from '$lib/components/Kanban.svelte';
+	import ProjectCollaborators from '$lib/components/ProjectCollaborators.svelte';
+	import SideNav from '$lib/components/SideNav.svelte';
 	import { cn } from '$lib/utils/style';
 	let { data } = $props();
 
@@ -135,10 +137,14 @@
 					{#if project.description}
 						<p class="mt-2 text-slate-600 dark:text-slate-400">{project.description}</p>
 					{/if}
-					<div class="mt-4 flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-						<span>Created: {new Date(project.createdAt).toLocaleDateString()}</span>
-						<span>•</span>
-						<span>{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</span>
+					<div class="mt-4 flex items-center justify-between">
+						<div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+							<span>Created: {new Date(project.createdAt).toLocaleDateString()}</span>
+							<span>•</span>
+							<span>{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</span>
+						</div>
+						<!-- Collaborators/Invite UI -->
+						<ProjectCollaborators />
 					</div>
 				</div>
 

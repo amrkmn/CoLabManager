@@ -1,38 +1,184 @@
-# sv
+# PTA - Project Tracking Application
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A comprehensive project management application built with SvelteKit, featuring team collaboration, task management, and email-based user invitations.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+### 🚀 Core Features
+- **Project Management**: Create, update, and organize projects
+- **Task Tracking**: Kanban-style task management with drag-and-drop
+- **File Management**: Upload and manage project files
+- **Team Collaboration**: Invite team members via email
+- **User Authentication**: Secure login with email verification
 
+### 👥 Collaboration Features
+- **Email Invitations**: Invite users to projects via email
+- **Role-based Access**: Admin and Member roles with different permissions
+- **User Onboarding**: Guided setup for invited users
+- **Member Management**: Add/remove team members from projects
+
+### 📧 Email System
+- **Email Verification**: Required for new user registrations
+- **Project Invitations**: Automated email invitations for collaboration
+- **SMTP Integration**: Configurable email service (Gmail, Outlook, etc.)
+
+## Setup
+
+### Prerequisites
+- Node.js 18+ or Bun
+- PostgreSQL database
+- SMTP email service (Gmail, Outlook, etc.)
+
+### Installation
+
+1. Clone the repository:
 ```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+git clone <repository-url>
+cd PTA
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
+2. Install dependencies:
 ```bash
+bun install
+# or
+npm install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your configuration:
+```bash
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/pta_db"
+
+# Authentication
+JWT_SECRET="your-super-secure-jwt-secret"
+
+# Email Configuration
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+EMAIL_FROM="your-email@gmail.com"
+EMAIL_FROM_NAME="PTA Team"
+
+# Application URL
+APP_URL="http://localhost:5173"
+```
+
+4. Set up the database:
+```bash
+bunx prisma migrate dev
+# or
+npx prisma migrate dev
+```
+
+5. (Optional) Seed the database:
+```bash
+bunx prisma db seed
+# or
+npx prisma db seed
+```
+
+## Development
+
+Start the development server:
+```bash
+bun run dev
+# or
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
+
+The application will be available at `http://localhost:5173`
+
+## Email Configuration
+
+### Gmail Setup
+1. Enable 2-factor authentication on your Gmail account
+2. Generate an app-specific password:
+   - Go to Google Account settings
+   - Security → 2-Step Verification → App passwords
+   - Generate a password for "Mail"
+3. Use your email and the generated password in the environment variables
+
+### Other Email Providers
+The application supports any SMTP server. Update the SMTP configuration in your `.env` file accordingly.
+
+## Usage
+
+### User Registration & Email Verification
+1. Users register with email, name, and password
+2. Verification email is sent automatically
+3. Users must verify their email before logging in
+
+### Project Collaboration
+1. Project admins can invite users via email
+2. Invitations work for both existing and new users
+3. New users are guided through account setup
+4. Members can be assigned different roles (Admin/Member)
+
+### Member Management
+- View all project members with their roles
+- Remove members (Admin only)
+- Invite new members via email
+
+## API Endpoints
+
+### Authentication
+- `POST /api/register` - User registration with email verification
+- `POST /api/login` - User login
+- `GET /auth/verify` - Email verification endpoint
+
+### Projects
+- `GET /api/projects` - List user's projects
+- `POST /api/projects` - Create new project
+- `GET /api/projects/[id]` - Get project details
+- `PUT /api/projects/[id]` - Update project
+
+### Project Members
+- `GET /api/projects/[id]/members` - List project members
+- `POST /api/projects/[id]/members` - Invite user to project
+- `DELETE /api/projects/[id]/members/[userId]` - Remove member
+
+### User Setup
+- `POST /api/auth/setup` - Complete user profile setup (for invited users)
 
 ## Building
 
-To create a production version of your app:
-
+To create a production version:
 ```bash
+bun run build
+# or
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+Preview the production build:
+```bash
+bun run preview
+# or
+npm run preview
+```
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Deployment
+
+The application can be deployed to any platform that supports Node.js applications. Make sure to:
+
+1. Set up your production database
+2. Configure environment variables on your hosting platform
+3. Set up your SMTP email service
+4. Update the `APP_URL` to your production domain
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

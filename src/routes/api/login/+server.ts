@@ -20,10 +20,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		if (isNullish(user)) {
 			return json({ error: true, message: ['invalid_credentials'] }, { status: 401 });
 		}
-
 		const validPassword = await Bun.password.verify(password, user.password);
 		if (!validPassword) {
 			return json({ error: true, message: ['invalid_credentials'] }, { status: 401 });
+		}
+
+		// Check if email is verified
+		if (!user.emailVerified) {
+			return json({ error: true, message: ['email_not_verified'] }, { status: 403 });
 		}
 
 		const { password: _, ...userWithoutPassword } = user;
