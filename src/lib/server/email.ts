@@ -1,5 +1,15 @@
 import nodemailer from 'nodemailer';
 
+/**
+ * Email Service for CoLab Manager
+ *
+ * Features:
+ * - SMTP configuration with environment variables
+ * - List-Unsubscribe header support for SMTP2GO compliance
+ * - %%UNSUBSCRIBE%% placeholder support (handled by SMTP2GO)
+ * - HTML and text email templates
+ */
+
 // Email configuration from environment variables
 const transporter = nodemailer.createTransport({
 	host: Bun.env.SMTP_HOST || 'smtp.gmail.com',
@@ -20,13 +30,19 @@ export interface EmailOptions {
 
 export async function sendEmail(options: EmailOptions) {
 	try {
-		const info = await transporter.sendMail({
-			from: `"${Bun.env.EMAIL_FROM_NAME || 'PTA'}" <${Bun.env.EMAIL_FROM || Bun.env.SMTP_USER}>`,
+		const mailOptions = {
+			from: `"${Bun.env.EMAIL_FROM_NAME || 'CoLab Manager'}" <${Bun.env.EMAIL_FROM || Bun.env.SMTP_USER}>`,
 			to: options.to,
 			subject: options.subject,
 			html: options.html,
-			text: options.text
-		});
+			text: options.text,
+			headers: {
+				'List-Unsubscribe': '%%UNSUBSCRIBE%%',
+				'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+			}
+		};
+
+		const info = await transporter.sendMail(mailOptions);
 
 		console.log('Email sent:', info.messageId);
 		return { success: true, messageId: info.messageId };
@@ -53,29 +69,30 @@ export function generateVerificationEmailHtml(name: string, verificationUrl: str
                     padding: 12px 24px; 
                     text-decoration: none; 
                     border-radius: 5px; 
-                    margin: 20px 0; 
-                }
+                    margin: 20px 0;                }
                 .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+                .unsubscribe { color: #999; font-size: 11px; text-decoration: underline; }
+                .unsubscribe:hover { color: #666; }
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>Welcome to PTA!</h1>
+                    <h1>Welcome to CoLab Manager!</h1>
                 </div>
                 <div class="content">
                     <h2>Hello ${name},</h2>
-                    <p>Thank you for registering with PTA. To complete your registration and start using the application, please verify your email address by clicking the button below:</p>
+                    <p>Thank you for registering with CoLab Manager. To complete your registration and start using the application, please verify your email address by clicking the button below:</p>
                     <div style="text-align: center;">
-                        <a href="${verificationUrl}" class="button">Verify Email Address</a>
+                        <a href="${verificationUrl}" class="button" style="color: white">Verify Email Address</a>
                     </div>
                     <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
                     <p style="word-break: break-all; color: #2563eb;">${verificationUrl}</p>
-                    <p>This verification link will expire in 24 hours.</p>
-                    <p>If you didn't create an account with us, please ignore this email.</p>
+                    <p>This verification link will expire in 24 hours.</p>                    <p>If you didn't create an account with us, please ignore this email.</p>
                 </div>
                 <div class="footer">
-                    <p>&copy; 2025 PTA. All rights reserved.</p>
+                    <p>&copy; 2025 CoLab Manager. All rights reserved.</p>
+                    <p><a href="%%UNSUBSCRIBE%%" class="unsubscribe">Unsubscribe from future emails</a></p>
                 </div>
             </div>
         </body>
@@ -106,9 +123,10 @@ export function generateProjectInviteEmailHtml(
                     text-decoration: none; 
                     border-radius: 5px; 
                     margin: 20px 0; 
-                }
-                .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
-                .project-info { 
+                }                .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+                .unsubscribe { color: #999; font-size: 11px; text-decoration: underline; }
+                .unsubscribe:hover { color: #666; }
+                .project-info {
                     background-color: white; 
                     padding: 15px; 
                     border-left: 4px solid #2563eb; 
@@ -123,7 +141,7 @@ export function generateProjectInviteEmailHtml(
                 </div>
                 <div class="content">
                     <h2>You've been invited to collaborate!</h2>
-                    <p><strong>${inviterName}</strong> has invited you to join a project on PTA.</p>
+                    <p><strong>${inviterName}</strong> has invited you to join a project on CoLab Manager.</p>
                     
                     <div class="project-info">
                         <h3>Project: ${projectName}</h3>
@@ -136,11 +154,11 @@ export function generateProjectInviteEmailHtml(
                     </div>
                     <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
                     <p style="word-break: break-all; color: #2563eb;">${inviteUrl}</p>
-                    <p>This invitation link will expire in 7 days.</p>
-                    <p>If you don't have a PTA account yet, you'll be prompted to create one first.</p>
+                    <p>This invitation link will expire in 7 days.</p>                    <p>If you don't have a CoLab Manager account yet, you'll be prompted to create one first.</p>
                 </div>
                 <div class="footer">
-                    <p>&copy; 2025 PTA. All rights reserved.</p>
+                    <p>&copy; 2025 CoLab Manager. All rights reserved.</p>
+                    <p><a href="%%UNSUBSCRIBE%%" class="unsubscribe">Unsubscribe from future emails</a></p>
                 </div>
             </div>
         </body>
