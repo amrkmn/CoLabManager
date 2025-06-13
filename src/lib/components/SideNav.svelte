@@ -147,26 +147,6 @@
 			</li>
 		</ul>
 	</div>
-
-	<!-- Settings at Bottom -->
-	<!-- <div class="mt-auto border-t border-slate-200 pt-2 dark:border-slate-700">
-		<ul class="!m-0 flex !list-none flex-col gap-1 !p-0">
-			<li>
-				<a
-					href="/settings/user"
-					class={cn(
-						'flex w-full items-center gap-1 rounded-md px-3 py-1.5 text-slate-700 transition dark:text-slate-200',
-						'hover:bg-blue-100 dark:hover:bg-slate-800',
-						currentPath === '/settings/user'
-							? 'bg-blue-50 font-semibold text-blue-700 dark:bg-slate-800 dark:text-blue-400'
-							: ''
-					)}
-				>
-					<span class="w-full">Settings</span>
-				</a>
-			</li>
-		</ul>
-	</div> -->
 </nav>
 
 <!-- Add Project Modal -->

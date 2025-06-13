@@ -13,7 +13,6 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	if (!projectId) {
 		return json({ error: true, message: 'Project ID is required' }, { status: 400 });
 	}
-
 	try {
 		const project = await prisma.project.findFirst({
 			where: {
@@ -50,6 +49,18 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 						}
 					}
 				},
+				members: {
+					include: {
+						user: {
+							select: {
+								id: true,
+								name: true,
+								email: true,
+								profilePictureUrl: true
+							}
+						}
+					}
+				},
 				_count: {
 					select: {
 						tasks: true,
@@ -64,7 +75,17 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			return json({ error: true, message: 'Project not found' }, { status: 404 });
 		}
 
-		return json({ success: true, project });
+		// Get current user's role in the project
+		const currentUserMembership = project.members.find(member => member.userId === user.id);
+		const userRole = currentUserMembership?.role || 'Member';
+
+		return json({ 
+			success: true, 
+			project: {
+				...project,
+				currentUserRole: userRole
+			}
+		});
 	} catch (err) {
 		console.error('Error fetching project:', err);
 		return json({ error: true, message: 'Failed to fetch project' }, { status: 500 });
@@ -140,7 +161,6 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 	if (!projectId) {
 		return json({ error: true, message: 'Project ID is required' }, { status: 400 });
 	}
-
 	try {
 		// Check if project exists and user is an Admin member
 		const existingProject = await prisma.project.findFirst({
@@ -149,10 +169,34 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 				members: {
 					some: { userId: user.id, role: 'Admin' }
 				}
+			},
+			include: {
+				_count: {
+					select: {
+						tasks: true,
+						files: true,
+						messages: true,
+						members: true
+					}
+				}
 			}
 		});
 
 		if (!existingProject) {
+			// Check if project exists but user doesn't have admin access
+			const projectExists = await prisma.project.findFirst({
+				where: {
+					id: projectId,
+					members: {
+						some: { userId: user.id }
+					}
+				}
+			});
+
+			if (projectExists) {
+				return json({ error: true, message: 'Insufficient permissions. Only project admins can delete projects.' }, { status: 403 });
+			}
+
 			return json({ error: true, message: 'Project not found' }, { status: 404 });
 		}
 
@@ -187,7 +231,17 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 				}
 			})
 		]);
-		return json({ success: true, message: 'Project deleted successfully' });
+
+		return json({ 
+			success: true, 
+			message: 'Project deleted successfully',
+			deletedCounts: {
+				tasks: existingProject._count.tasks,
+				files: existingProject._count.files,
+				messages: existingProject._count.messages,
+				members: existingProject._count.members
+			}
+		});
 	} catch (err) {
 		console.error('Error deleting project:', err);
 		return json({ error: true, message: 'Failed to delete project' }, { status: 500 });

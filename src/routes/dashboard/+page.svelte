@@ -1,11 +1,31 @@
 <script lang="ts">
-	import Header from '$lib/components/Header.svelte';
-	import SideNav from '$lib/components/SideNav.svelte';
-	import Kanban from '$lib/components/Kanban.svelte';
-	import { cn } from '$lib/utils/style';
 	import { invalidate } from '$app/navigation';
+	import { page } from '$app/state';
+	import Header from '$lib/components/Header.svelte';
+	import Kanban from '$lib/components/Kanban.svelte';
+	import SideNav from '$lib/components/SideNav.svelte';
+	import { cn } from '$lib/utils/style';
+	import { onMount } from 'svelte';
 
-	export let data;
+	let { data } = $props();
+
+	let showDeleteSuccess = $state(false);
+
+	onMount(() => {
+		// Check if we're coming from a deleted project
+		if (page.url.searchParams.get('deleted') === 'true') {
+			showDeleteSuccess = true;
+			// Clear the URL parameter
+			const url = new URL(page.url);
+			url.searchParams.delete('deleted');
+			window.history.replaceState({}, '', url);
+
+			// Hide the message after 5 seconds
+			setTimeout(() => {
+				showDeleteSuccess = false;
+			}, 5000);
+		}
+	});
 
 	// Call this after a project is created to refresh dashboard data
 	async function handleProjectCreated() {
@@ -25,6 +45,44 @@
 		<!-- Side Navigation -->
 		<SideNav />
 		<main class="flex-1 p-6 text-slate-800 dark:text-white">
+			<!-- Success message for deleted project -->
+			{#if showDeleteSuccess}
+				<div
+					class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
+				>
+					<div class="flex items-center">
+						<svg
+							class="mr-2 h-5 w-5 text-green-600 dark:text-green-400"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M5 13l4 4L19 7"
+							></path>
+						</svg>
+						<p class="text-green-700 dark:text-green-300">Project deleted successfully.</p>
+						<button
+							onclick={() => (showDeleteSuccess = false)}
+							class="ml-auto text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
+							aria-label="Close success message"
+						>
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								></path>
+							</svg>
+						</button>
+					</div>
+				</div>
+			{/if}
+
 			<h2 class="mt-0 mb-4 text-2xl font-semibold text-slate-600 dark:text-slate-400">
 				Welcome back, {data.user.name}!
 			</h2>
