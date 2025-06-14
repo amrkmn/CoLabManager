@@ -29,22 +29,39 @@ A comprehensive project management application built with SvelteKit, featuring t
 - PostgreSQL database
 - SMTP email service (Gmail, Outlook, etc.)
 
-### Installation
+### 🐳 Docker Deployment (Recommended)
 
-1. Clone the repository:
+The easiest way to deploy CoLab Manager is using Docker with our pre-built images from GitHub Container Registry.
+
+**Quick Start:**
+```bash
+# Clone and configure
+git clone <repository-url>
+cd PTA
+cp .env.example .env
+# Edit .env with your values
+
+# Deploy with one command
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh deploy
+```
+
+**Access your application at:** http://localhost:3930
+
+For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/DOCKER_DEPLOYMENT.md).
+
+### 💻 Local Development
+
+For local development and testing:
 ```bash
 git clone <repository-url>
 cd PTA
-```
-
-2. Install dependencies:
-```bash
 bun install
 # or
 npm install
 ```
 
-3. Set up environment variables:
+Set up environment variables:
 ```bash
 cp .env.example .env
 ```
@@ -69,21 +86,19 @@ EMAIL_FROM_NAME="PTA Team"
 APP_URL="http://localhost:5173"
 ```
 
-4. Set up the database:
+Set up the database:
 ```bash
 bunx prisma migrate dev
 # or
 npx prisma migrate dev
 ```
 
-5. (Optional) Seed the database:
+(Optional) Seed the database:
 ```bash
 bunx prisma db seed
 # or
 npx prisma db seed
 ```
-
-## Development
 
 Start the development server:
 ```bash
