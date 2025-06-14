@@ -70,8 +70,10 @@
 					Registration Successful!
 				</h2>
 				<p class="mb-4 text-slate-600 dark:text-slate-400">
-					We've sent a verification email to <strong>{email}</strong>. Please check your inbox and
-					click the verification link to activate your account.
+					We've sent a verification email to <strong class="text-slate-600 dark:text-slate-400">
+						{email}
+					</strong>. Please check your inbox and click the verification link to activate your
+					account.
 				</p>
 				<p class="text-sm text-slate-500 dark:text-slate-500">
 					Didn't receive the email? Check your spam folder or contact support.
