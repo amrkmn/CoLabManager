@@ -10,7 +10,7 @@ RUN apk add --no-cache git
 COPY package.json bun.lock ./
 
 # Install dependencies
-RUN bun install --frozen-lockfile --production=false
+RUN bun install --frozen-lockfile
 
 # Copy Prisma schema and generate client
 COPY prisma ./prisma/
