@@ -5,6 +5,7 @@ import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import { createId } from '@paralleldrive/cuid2';
 import type { RequestHandler } from './$types';
+import { env } from '$env/dynamic/private';
 
 const Register = z.object({
 	name: z.string({ required_error: 'name_required' }),
@@ -37,7 +38,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 
 		// Send verification email
-		const verificationUrl = `${Bun.env.APP_URL || 'http://localhost:5173'}/auth/verify?token=${verificationToken}`;
+		const verificationUrl = `${env.APP_URL || 'http://localhost:5173'}/auth/verify?token=${verificationToken}`;
 		await sendEmail({
 			to: email,
 			subject: 'Verify your email - PTA',

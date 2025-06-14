@@ -12,7 +12,7 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-pta}
       - JWT_SECRET=${JWT_SECRET}
-      - BASE_URL=${BASE_URL:-http://localhost:3000}
+      - APP_URL=${APP_URL:-http://localhost:3000}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_SECURE=${SMTP_SECURE:-false}
@@ -20,10 +20,15 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - EMAIL_FROM=${EMAIL_FROM}
       - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-CoLab Manager}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - MINIO_BUCKET=${MINIO_BUCKET:-colab-files}
+      # S3/MinIO Configuration
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_PORT=${S3_PORT:-443}
+      - S3_USE_SSL=${S3_USE_SSL:-true}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_HOST=${S3_HOST}
+      - S3_BUCKET=${S3_BUCKET:-pta}
+      - S3_REGION=${S3_REGION:-us-east-1}
     depends_on:
       db:
         condition: service_healthy
@@ -54,27 +59,27 @@ services:
       retries: 5
     restart: unless-stopped
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    volumes:
-      - minio_data:/data
-    ports:
-      - '9000:9000'
-      - '9001:9001'
-    networks:
-      - pta-network
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
-      interval: 30s
-      timeout: 20s
-      retries: 3
-    profiles:
-      - storage
+  # minio:
+  #   image: minio/minio:latest
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+  #   volumes:
+  #     - minio_data:/data
+  #   ports:
+  #     - '9000:9000'
+  #     - '9001:9001'
+  #   networks:
+  #     - pta-network
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+  #     interval: 30s
+  #     timeout: 20s
+  #     retries: 3
+  #   profiles:
+  #     - storage
 
 volumes:
   postgres_data:

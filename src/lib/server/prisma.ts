@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/private';
 import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
@@ -6,6 +7,6 @@ const globalForPrisma = globalThis as unknown as {
 
 export const prisma = globalForPrisma.prisma || new PrismaClient();
 
-if (Bun.env.NODE_ENV !== 'production') {
+if (env.NODE_ENV !== 'production') {
 	globalForPrisma.prisma = prisma;
 }

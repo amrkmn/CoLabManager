@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { prisma } from '$lib/server/prisma';
 import { sendEmail, generateProjectInviteEmailHtml } from '$lib/server/email';
 import { createId } from '@paralleldrive/cuid2';
+import { env } from '$env/dynamic/private';
 
 // GET /api/projects/[id]/members - List all members of a project
 export const GET: RequestHandler = async ({ params, locals }) => {
@@ -88,7 +89,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			});
 			
 			// Send notification email
-			const inviteUrl = `${Bun.env.APP_URL || 'http://localhost:5173'}/projects/${projectId}`;
+			const inviteUrl = `${env.APP_URL || 'http://localhost:5173'}/projects/${projectId}`;
 			await sendEmail({
 				to: email,
 				subject: `You've been added to ${project.name} - PTA`,
@@ -99,7 +100,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		} else {
 			// User doesn't exist, create invite token
 			const inviteToken = createId();
-			const inviteUrl = `${Bun.env.APP_URL || 'http://localhost:5173'}/auth/invite?token=${inviteToken}`;
+			const inviteUrl = `${env.APP_URL || 'http://localhost:5173'}/auth/invite?token=${inviteToken}`;
 			
 			// Store invite details in a temporary way (you might want to create a separate table for this)
 			// For now, we'll create a user record with invite token

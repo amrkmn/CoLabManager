@@ -1,10 +1,11 @@
 import { prisma } from '$lib/server/prisma';
 import { json, redirect } from '@sveltejs/kit';
+import { isSvelteKitRedirect } from '$lib/utils/redirect';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const token = url.searchParams.get('token');
-	
+
 	if (!token) {
 		return json({ error: true, message: 'Verification token is required' }, { status: 400 });
 	}
@@ -18,7 +19,10 @@ export const GET: RequestHandler = async ({ url }) => {
 		});
 
 		if (!user) {
-			return json({ error: true, message: 'Invalid or expired verification token' }, { status: 400 });
+			return json(
+				{ error: true, message: 'Invalid or expired verification token' },
+				{ status: 400 }
+			);
 		}
 
 		// Update user as verified
@@ -33,9 +37,11 @@ export const GET: RequestHandler = async ({ url }) => {
 		// Redirect to login with success message
 		throw redirect(302, '/auth/login?verified=true');
 	} catch (error) {
-		if (error instanceof Response) {
-			throw error; // Re-throw redirect
+		// Check if this is a SvelteKit redirect - if so, don't log it as an error
+		if (isSvelteKitRedirect(error)) {
+			throw error; // Re-throw the redirect
 		}
+
 		console.error('Email verification failed:', error);
 		return json({ error: true, message: 'Verification failed' }, { status: 500 });
 	}

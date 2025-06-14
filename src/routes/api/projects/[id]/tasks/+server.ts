@@ -16,17 +16,22 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 		return json({ error: true, message: 'Project ID is required' }, { status: 400 });
 	}
 
-	// Check if user owns the project
-	const project = await prisma.project.findFirst({
+	// Check if user is a member of the project (either owner or collaborator)
+	const projectMembership = await prisma.projectMember.findFirst({
 		where: {
-			id: projectId,
-			createdBy: user.id
+			projectId: projectId,
+			userId: user.id
+		},
+		include: {
+			project: true
 		}
 	});
 
-	if (!project) {
-		return json({ error: true, message: 'Project not found' }, { status: 404 });
+	if (!projectMembership) {
+		return json({ error: true, message: 'Project not found or access denied' }, { status: 404 });
 	}
+
+	const project = projectMembership.project;
 
 	try {
 		const status = url.searchParams.get('status');
@@ -88,18 +93,24 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 	if (!projectId) {
 		return json({ error: true, message: 'Project ID is required' }, { status: 400 });
 	}
-
-	// Check if user owns the project
-	const project = await prisma.project.findFirst({
+	// Check if user is a member of the project (either owner or collaborator)
+	const projectMembership = await prisma.projectMember.findFirst({
 		where: {
-			id: projectId,
-			createdBy: user.id
+			projectId: projectId,
+			userId: user.id
+		},
+		include: {
+			project: true
 		}
 	});
 
-	if (!project) {
-		return json({ error: true, message: 'Project not found' }, { status: 404 });
+	if (!projectMembership) {
+		return json({ error: true, message: 'Project not found or access denied' }, { status: 404 });
 	}
+
+	// Check if user has permission to create tasks (admin check if needed)
+	// For now, all project members can create tasks
+	const project = projectMembership.project;
 	try {
 		let title = '',
 			description = '',
@@ -147,7 +158,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		// Handle file upload if present
 		let createdTask;
 		if (file && typeof File !== 'undefined' && file instanceof File && file.size > 0) {
-			const fileName = `projects/${projectId}/tasks/${createId()}_${file.name}`;
+			const fileName = `projects/${projectId}/tasks/${createId()}/${file.name}`;
 			const buffer = Buffer.from(await file.arrayBuffer());
 			const s3Path = await uploadToS3(fileName, buffer, file.type);
 			createdTask = await prisma.task.create({
@@ -210,7 +221,6 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			createdAt: createdTask.createdAt.toISOString(),
 			updatedAt: createdTask.updatedAt.toISOString(),
 			files: createdTask.file.map((file) => {
-				console.log(file);
 				return {
 					id: file.id,
 					name: file.name,

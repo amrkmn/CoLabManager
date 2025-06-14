@@ -15,13 +15,17 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	}
 
 	try {
-		// Check if user owns the project and task exists
+		// Check if user is a member of the project and task exists
 		const task = await prisma.task.findFirst({
 			where: {
 				id: taskId,
 				projectId: projectId,
 				project: {
-					createdBy: user.id
+					members: {
+						some: {
+							userId: user.id
+						}
+					}
 				}
 			}
 		});
@@ -134,13 +138,17 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 	}
 
 	try {
-		// Check if user owns the project and task exists
+		// Check if user is a member of the project and task exists
 		const task = await prisma.task.findFirst({
 			where: {
 				id: taskId,
 				projectId: projectId,
 				project: {
-					createdBy: user.id
+					members: {
+						some: {
+							userId: user.id
+						}
+					}
 				}
 			}
 		});

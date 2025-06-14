@@ -13,13 +13,33 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	if (!projectId) {
 		return json({ error: true, message: 'Project ID is required' }, { status: 400 });
 	}
+
+	// Debug: Check user's project memberships
+	console.log('User accessing project:', { userId: user.id, projectId });
+	const userMemberships = await prisma.projectMember.findMany({
+		where: { userId: user.id },
+		include: { project: { select: { id: true, name: true } } }
+	});
+	console.log('User memberships:', userMemberships);
 	try {
+		// First check if user has membership
+		const membership = await prisma.projectMember.findFirst({
+			where: {
+				userId: user.id,
+				projectId: projectId
+			}
+		});
+
+		console.log('User membership for project:', membership);
+
+		if (!membership) {
+			return json({ error: true, message: 'Project not found or access denied' }, { status: 404 });
+		}
+
+		// Now get the full project details
 		const project = await prisma.project.findFirst({
 			where: {
-				id: projectId,
-				members: {
-					some: { userId: user.id }
-				}
+				id: projectId
 			},
 			include: {
 				tasks: {
@@ -70,14 +90,12 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 				}
 			}
 		});
-
 		if (!project) {
 			return json({ error: true, message: 'Project not found' }, { status: 404 });
 		}
 
-		// Get current user's role in the project
-		const currentUserMembership = project.members.find(member => member.userId === user.id);
-		const userRole = currentUserMembership?.role || 'Member';
+		// Use the membership role we already found
+		const userRole = membership.role;
 
 		return json({ 
 			success: true, 

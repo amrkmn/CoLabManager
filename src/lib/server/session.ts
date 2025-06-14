@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/private';
 import { prisma } from '$lib/server/prisma';
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
@@ -76,7 +77,7 @@ export function setSessionTokenCookie(cookies: Cookies, token: string, expiresAt
 		sameSite: 'lax',
 		expires: expiresAt,
 		path: '/',
-		secure: Bun.env.NODE_ENV === 'production'
+		secure: env.NODE_ENV === 'production'
 	});
 }
 
@@ -86,7 +87,7 @@ export function deleteSessionTokenCookie(cookies: Cookies): void {
 		sameSite: 'lax',
 		maxAge: 0,
 		path: '/',
-		secure: Bun.env.NODE_ENV === 'production'
+		secure: env.NODE_ENV === 'production'
 	});
 }
 

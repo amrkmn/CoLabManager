@@ -2,6 +2,8 @@
  * Simple logger utility for the PTA application
  */
 
+import { env } from "$env/dynamic/private";
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface Logger {
@@ -20,7 +22,7 @@ function formatMessage(level: LogLevel, context: string, message: string): strin
 export function log(context: string): Logger {
 	return {
 		debug: (message: string) => {
-			if (Bun.env.NODE_ENV === 'development') {
+			if (env.NODE_ENV === 'development') {
 				console.log(formatMessage('debug', context, message));
 			}
 		},

@@ -56,7 +56,7 @@ S3_ACCESS_KEY_ID=your-access-key
 S3_SECRET_ACCESS_KEY=your-secret-key
 
 # Application URL
-BASE_URL=https://your-domain.com
+APP_URL=https://your-domain.com
 ```
 
 ### 3. Deploy
@@ -75,7 +75,7 @@ chmod +x scripts/deploy.sh
 ### 4. Access the Application
 
 The application will be available at:
-- **Main App**: http://localhost:3930 (or your configured BASE_URL)
+- **Main App**: http://localhost:3930 (or your configured APP_URL)
 - **MinIO Console**: http://localhost:9001 (if using storage profile)
 - **pgAdmin**: http://localhost:8080 (if using tools profile)
 - **Database**: localhost:5432

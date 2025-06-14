@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/private';
 import nodemailer from 'nodemailer';
 
 /**
@@ -12,12 +13,12 @@ import nodemailer from 'nodemailer';
 
 // Email configuration from environment variables
 const transporter = nodemailer.createTransport({
-	host: Bun.env.SMTP_HOST || 'smtp.gmail.com',
-	port: parseInt(Bun.env.SMTP_PORT || '587'),
-	secure: Bun.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+	host: env.SMTP_HOST || 'smtp.gmail.com',
+	port: parseInt(env.SMTP_PORT || '587'),
+	secure: env.SMTP_SECURE === 'true', // true for 465, false for other ports
 	auth: {
-		user: Bun.env.SMTP_USER,
-		pass: Bun.env.SMTP_PASS
+		user: env.SMTP_USER,
+		pass: env.SMTP_PASS
 	}
 });
 
@@ -31,7 +32,7 @@ export interface EmailOptions {
 export async function sendEmail(options: EmailOptions) {
 	try {
 		const mailOptions = {
-			from: `"${Bun.env.EMAIL_FROM_NAME || 'CoLab Manager'}" <${Bun.env.EMAIL_FROM || Bun.env.SMTP_USER}>`,
+			from: `"${env.EMAIL_FROM_NAME || 'CoLab Manager'}" <${env.EMAIL_FROM || env.SMTP_USER}>`,
 			to: options.to,
 			subject: options.subject,
 			html: options.html,
