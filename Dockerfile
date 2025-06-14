@@ -1,11 +1,6 @@
 # -------- Build Stage --------
 FROM oven/bun:alpine AS builder
 
-LABEL org.opencontainers.image.title="CoLab Manager"
-LABEL org.opencontainers.image.description="Collaborative Project Management Application"
-LABEL org.opencontainers.image.vendor="CoLab Manager"
-LABEL org.opencontainers.image.licenses="BSD 2-Clause"
-
 WORKDIR /app
 
 # Copy only necessary files for dependency installation
