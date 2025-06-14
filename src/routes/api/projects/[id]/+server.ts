@@ -14,13 +14,6 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		return json({ error: true, message: 'Project ID is required' }, { status: 400 });
 	}
 
-	// Debug: Check user's project memberships
-	console.log('User accessing project:', { userId: user.id, projectId });
-	const userMemberships = await prisma.projectMember.findMany({
-		where: { userId: user.id },
-		include: { project: { select: { id: true, name: true } } }
-	});
-	console.log('User memberships:', userMemberships);
 	try {
 		// First check if user has membership
 		const membership = await prisma.projectMember.findFirst({
@@ -29,8 +22,6 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 				projectId: projectId
 			}
 		});
-
-		console.log('User membership for project:', membership);
 
 		if (!membership) {
 			return json({ error: true, message: 'Project not found or access denied' }, { status: 404 });
@@ -97,8 +88,8 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		// Use the membership role we already found
 		const userRole = membership.role;
 
-		return json({ 
-			success: true, 
+		return json({
+			success: true,
 			project: {
 				...project,
 				currentUserRole: userRole
@@ -212,7 +203,13 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 			});
 
 			if (projectExists) {
-				return json({ error: true, message: 'Insufficient permissions. Only project admins can delete projects.' }, { status: 403 });
+				return json(
+					{
+						error: true,
+						message: 'Insufficient permissions. Only project admins can delete projects.'
+					},
+					{ status: 403 }
+				);
 			}
 
 			return json({ error: true, message: 'Project not found' }, { status: 404 });
@@ -250,8 +247,8 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 			})
 		]);
 
-		return json({ 
-			success: true, 
+		return json({
+			success: true,
 			message: 'Project deleted successfully',
 			deletedCounts: {
 				tasks: existingProject._count.tasks,

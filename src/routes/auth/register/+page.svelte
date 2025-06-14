@@ -5,17 +5,20 @@
 	import { onMount } from 'svelte';
 	import { TelInput, normalizedCountries } from 'svelte-tel-input';
 	import type { CountryCode, E164Number } from 'svelte-tel-input/types';
+	let { data } = $props();
 
-	let name = '';
-	let email = '';
-	let password = '';
-	let confirmPassword = '';
-	let errors: string[] = [];
-	let registrationSuccess = false;
+	let name = $state('');
+	let email = $state('');
+	let password = $state('');
+	let confirmPassword = $state('');
+	let errors = $state<string[]>([]);
+	let registrationSuccess = $state(false);
+	let successMessage = $state('');
+	let isFirstUser = $state(false);
 
-	let selectedCountry: CountryCode | null;
-	let contactNumber: E164Number | null;
-	let validPhoneNumber: boolean = true;
+	let selectedCountry = $state<CountryCode | null>(null);
+	let contactNumber = $state<E164Number | null>(null);
+	let validPhoneNumber = $state(true);
 
 	onMount(async () => {
 		const res = await fetch('https://ipapi.co/json');
@@ -26,8 +29,8 @@
 			}
 		}
 	});
-
-	async function handleRegister() {
+	async function handleRegister(e: Event) {
+		e.preventDefault();
 		errors = [];
 		if (password !== confirmPassword) errors.push(errorMessages.password_mismatch);
 
@@ -38,16 +41,19 @@
 		});
 
 		if (res.ok) {
+			const result = await res.json();
 			registrationSuccess = true;
+			successMessage = result.message;
+			isFirstUser = result.isFirstUser;
 		} else {
-			const data = (await res.json()) as { error: boolean; message: string[] };
-			errors = data.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
+			const responseData = (await res.json()) as { error: boolean; message: string[] };
+			errors = responseData.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>Register - PTA</title>
+	<title>{data.isFirstUser ? 'Setup Admin Account' : 'Register'} - PTA</title>
 </svelte:head>
 
 <div
@@ -65,16 +71,34 @@
 	>
 		{#if registrationSuccess}
 			<div class="text-center">
-				<div class="mb-4 text-6xl text-green-500">✅</div>
+				<div class="mb-4 text-6xl">
+					{#if isFirstUser}
+						🎉
+					{:else}
+						✅
+					{/if}
+				</div>
 				<h2 class="mb-2 text-xl font-semibold text-slate-900 dark:text-slate-100">
-					Registration Successful!
+					{#if isFirstUser}
+						Admin Account Created!
+					{:else}
+						Registration Successful!
+					{/if}
 				</h2>
 				<p class="mb-4 text-slate-600 dark:text-slate-400">
-					We've sent a verification email to <strong class="text-slate-600 dark:text-slate-400">
-						{email}
-					</strong>. Please check your inbox and click the verification link to activate your
-					account.
+					{successMessage}
 				</p>
+				{#if isFirstUser}
+					<div
+						class="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20"
+					>
+						<p class="text-sm text-blue-800 dark:text-blue-200">
+							<strong>🚀 Welcome to CoLab Manager!</strong><br />
+							You're the first user, so you've been granted administrator privileges. After verifying
+							your email, you'll have full access to manage the system.
+						</p>
+					</div>
+				{/if}
 				<p class="text-sm text-slate-500 dark:text-slate-500">
 					Didn't receive the email? Check your spam folder or contact support.
 				</p>
@@ -86,8 +110,30 @@
 				</a>
 			</div>
 		{:else}
+			{#if data.isFirstUser}
+				<div
+					class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20"
+				>
+					<div class="flex items-center">
+						<div class="mr-3 text-2xl">🚀</div>
+						<div>
+							<h3 class="font-semibold text-amber-800 dark:text-amber-200">
+								Welcome! Let's set up CoLab Manager
+							</h3>
+							<p class="text-sm text-amber-700 dark:text-amber-300">
+								You're the first user, so you'll become the administrator.
+							</p>
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			<h1 class="mb-6 text-center text-3xl font-semibold text-slate-800 dark:text-white">
-				Register
+				{#if data.isFirstUser}
+					Create Admin Account
+				{:else}
+					Register
+				{/if}
 			</h1>
 
 			{#if errors.length > 0}
@@ -100,7 +146,7 @@
 				</div>
 			{/if}
 
-			<form on:submit|preventDefault={handleRegister} class="space-y-5">
+			<form onsubmit={handleRegister} class="space-y-5">
 				<div>
 					<label
 						for="name"
@@ -223,15 +269,19 @@
 						/>
 					</div>
 				</div>
-
 				<button
 					type="submit"
 					class={cn(
-						'w-full bg-blue-600 font-medium text-white hover:cursor-pointer hover:bg-blue-700',
-						'rounded-md py-2 shadow-sm transition duration-200'
+						'w-full font-medium text-white hover:cursor-pointer',
+						'rounded-md py-2 shadow-sm transition duration-200',
+						data.isFirstUser ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'
 					)}
 				>
-					Register
+					{#if data.isFirstUser}
+						Create Admin Account
+					{:else}
+						Register
+					{/if}
 				</button>
 			</form>
 

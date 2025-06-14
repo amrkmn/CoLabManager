@@ -8,14 +8,6 @@ export const GET: RequestHandler = async ({ request, locals }) => {
 	if (!user) {
 		return json({ error: true, message: 'Unauthorized' }, { status: 401 });
 	}
-	
-	// Debug: Check user's memberships
-	console.log('Fetching projects for user:', user.id);
-	const userMemberships = await prisma.projectMember.findMany({
-		where: { userId: user.id },
-		include: { project: { select: { id: true, name: true } } }
-	});
-	console.log('User has memberships:', userMemberships);
 
 	try {
 		const projects = await prisma.project.findMany({

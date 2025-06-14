@@ -1,5 +1,6 @@
 import { prisma } from '$lib/server/prisma';
 import { sendEmail, generateVerificationEmailHtml } from '$lib/server/email';
+import { isFirstUserSetup } from '$lib/server/setup';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
@@ -23,6 +24,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (!isNullish(checkUser)) {
 			return json({ error: true, message: ['email_already_used'] }, { status: 409 });
 		}
+
+		// Check if this is the first user (setup mode)
+		const isFirstUser = await isFirstUserSetup();
+		
 		const hashedPassword = await Bun.password.hash(password);
 		const verificationToken = createId();
 		
@@ -33,10 +38,11 @@ export const POST: RequestHandler = async ({ request }) => {
 				contactNumber,
 				password: hashedPassword,
 				verificationToken,
-				emailVerified: false
+				emailVerified: false,
+				// Make first user an admin
+				role: isFirstUser ? 'Admin' : 'User'
 			}
 		});
-
 		// Send verification email
 		const verificationUrl = `${env.APP_URL || 'http://localhost:5173'}/auth/verify?token=${verificationToken}`;
 		await sendEmail({
@@ -45,9 +51,14 @@ export const POST: RequestHandler = async ({ request }) => {
 			html: generateVerificationEmailHtml(name, verificationUrl)
 		});
 
+		const message = isFirstUser 
+			? 'Admin account created! Please check your email to verify your account and complete the setup.'
+			: 'Registration successful! Please check your email to verify your account.';
+
 		return json({ 
 			success: true, 
-			message: 'Registration successful! Please check your email to verify your account.' 
+			message,
+			isFirstUser
 		});
 	} catch (error) {
 		if (error instanceof z.ZodError) {
