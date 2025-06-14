@@ -38,10 +38,6 @@ RUN apk add --no-cache \
     ca-certificates \
     && rm -rf /var/cache/apk/*
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S bun -u 1001
-
 ENV NODE_ENV=production
 ENV PORT=3000
 
