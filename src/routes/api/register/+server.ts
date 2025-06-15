@@ -27,10 +27,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Check if this is the first user (setup mode)
 		const isFirstUser = await isFirstUserSetup();
-		
+
 		const hashedPassword = await Bun.password.hash(password);
 		const verificationToken = createId();
-		
+
 		const user = await prisma.user.create({
 			data: {
 				name,
@@ -51,12 +51,12 @@ export const POST: RequestHandler = async ({ request }) => {
 			html: generateVerificationEmailHtml(name, verificationUrl)
 		});
 
-		const message = isFirstUser 
+		const message = isFirstUser
 			? 'Admin account created! Please check your email to verify your account and complete the setup.'
 			: 'Registration successful! Please check your email to verify your account.';
 
-		return json({ 
-			success: true, 
+		return json({
+			success: true,
 			message,
 			isFirstUser
 		});

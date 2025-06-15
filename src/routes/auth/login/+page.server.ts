@@ -7,12 +7,12 @@ export async function load({ locals }) {
 	if (!isNullish(locals.user)) {
 		return redirect(302, '/dashboard');
 	}
-	
+
 	// If no users exist yet, redirect to registration for setup
 	const isFirstUser = await isFirstUserSetup();
 	if (isFirstUser) {
 		throw redirect(302, '/auth/register');
 	}
-	
+
 	return {};
 }

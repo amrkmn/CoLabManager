@@ -43,22 +43,23 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 	const projectId = params.id;
 	if (!projectId) {
 		return json({ error: true, message: 'Project ID is required' }, { status: 400 });
-	}	try {
+	}
+	try {
 		const { email, role } = await request.json();
 		if (!email) {
 			return json({ error: true, message: 'User email is required' }, { status: 400 });
 		}
-		
+
 		// Get project details for email
 		const project = await prisma.project.findUnique({
 			where: { id: projectId },
 			include: { user: { select: { name: true } } }
 		});
-		
+
 		if (!project) {
 			return json({ error: true, message: 'Project not found' }, { status: 404 });
 		}
-		
+
 		// Only allow if user is an admin of the project
 		const adminMembership = await prisma.projectMember.findFirst({
 			where: { projectId, userId: user.id, role: 'Admin' }
@@ -66,19 +67,22 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		if (!adminMembership) {
 			return json({ error: true, message: 'Forbidden' }, { status: 403 });
 		}
-		
+
 		const targetUser = await prisma.user.findUnique({ where: { email } });
-		
+
 		if (targetUser) {
 			// User exists, check if already a member
 			const existingMember = await prisma.projectMember.findUnique({
 				where: { userId_projectId: { userId: targetUser.id, projectId } }
 			});
-			
+
 			if (existingMember) {
-				return json({ error: true, message: 'User is already a member of this project' }, { status: 409 });
+				return json(
+					{ error: true, message: 'User is already a member of this project' },
+					{ status: 409 }
+				);
 			}
-			
+
 			// Add member directly
 			const member = await prisma.projectMember.create({
 				data: {
@@ -87,7 +91,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 					role: role || 'Member'
 				}
 			});
-			
+
 			// Send notification email
 			const inviteUrl = `${env.ORIGIN || 'http://localhost:5173'}/projects/${projectId}`;
 			await sendEmail({
@@ -95,13 +99,17 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 				subject: `You've been added to ${project.name} - PTA`,
 				html: generateProjectInviteEmailHtml(user.name, project.name, inviteUrl, role || 'Member')
 			});
-			
-			return json({ success: true, member, message: 'User added to project and notified via email' });
+
+			return json({
+				success: true,
+				member,
+				message: 'User added to project and notified via email'
+			});
 		} else {
 			// User doesn't exist, create invite token
 			const inviteToken = createId();
 			const inviteUrl = `${env.ORIGIN || 'http://localhost:5173'}/auth/invite?token=${inviteToken}`;
-			
+
 			// Store invite details in a temporary way (you might want to create a separate table for this)
 			// For now, we'll create a user record with invite token
 			const hashedPassword = await Bun.password.hash(createId()); // temporary password
@@ -116,7 +124,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 					role: 'User'
 				}
 			});
-			
+
 			// Add as project member
 			const member = await prisma.projectMember.create({
 				data: {
@@ -125,14 +133,14 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 					role: role || 'Member'
 				}
 			});
-			
+
 			// Send invitation email
 			await sendEmail({
 				to: email,
 				subject: `You've been invited to join ${project.name} - PTA`,
 				html: generateProjectInviteEmailHtml(user.name, project.name, inviteUrl, role || 'Member')
 			});
-			
+
 			return json({ success: true, member, message: 'Invitation sent via email' });
 		}
 	} catch (err) {

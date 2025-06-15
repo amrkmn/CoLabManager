@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const token = url.searchParams.get('token');
-	
+
 	if (!token) {
 		throw redirect(302, '/auth/login?error=missing_token');
 	}
@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	return {
 		user: {
 			email: user.email,
-			projects: user.projectMemberships.map(pm => pm.project.name)
+			projects: user.projectMemberships.map((pm) => pm.project.name)
 		},
 		token
 	};

@@ -16,12 +16,7 @@
 		onRemoveMember: (memberId: string) => void;
 	}
 
-	let {
-		show = $bindable(),
-		members,
-		onClose,
-		onRemoveMember
-	}: Props = $props();
+	let { show = $bindable(), members, onClose, onRemoveMember }: Props = $props();
 
 	function getAvatarUrl(member: Member) {
 		return (

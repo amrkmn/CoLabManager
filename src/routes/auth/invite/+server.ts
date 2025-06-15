@@ -5,7 +5,7 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const token = url.searchParams.get('token');
-	
+
 	if (!token) {
 		return json({ error: true, message: 'Invite token is required' }, { status: 400 });
 	}
@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		if (isSvelteKitRedirect(error)) {
 			throw error; // Re-throw the redirect
 		}
-		
+
 		console.error('Invite processing failed:', error);
 		return json({ error: true, message: 'Invite processing failed' }, { status: 500 });
 	}

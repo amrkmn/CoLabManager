@@ -1,8 +1,8 @@
 import { env } from '$env/dynamic/private';
-import { 
-	S3Client, 
-	PutObjectCommand, 
-	HeadBucketCommand, 
+import {
+	S3Client,
+	PutObjectCommand,
+	HeadBucketCommand,
 	CreateBucketCommand,
 	GetObjectCommand
 } from '@aws-sdk/client-s3';
@@ -23,7 +23,7 @@ const BUCKET_NAME = env.S3_BUCKET || 'pta';
 
 // Create S3 client with proper endpoint configuration
 export const s3Client = new S3Client({
-	endpoint: config.s3.useSSL 
+	endpoint: config.s3.useSSL
 		? `https://${config.s3.endpoint}${config.s3.port !== 443 ? ':' + config.s3.port : ''}`
 		: `http://${config.s3.endpoint}${config.s3.port !== 80 ? ':' + config.s3.port : ''}`,
 	region: config.s3.region,
@@ -38,16 +38,17 @@ async function ensureBucketExists(bucket: string) {
 	try {
 		await s3Client.send(new HeadBucketCommand({ Bucket: bucket }));
 	} catch (error: any) {
-		if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {			try {
+		if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
+			try {
 				const createBucketParams: any = { Bucket: bucket };
-				
+
 				// Only add LocationConstraint if region is not us-east-1 (default)
 				if (config.s3.region && config.s3.region !== 'us-east-1') {
 					createBucketParams.CreateBucketConfiguration = {
 						LocationConstraint: config.s3.region
 					};
 				}
-				
+
 				await s3Client.send(new CreateBucketCommand(createBucketParams));
 			} catch (createError) {
 				console.error('Failed to create bucket:', createError);
@@ -66,7 +67,7 @@ export async function uploadToS3(
 	contentType = 'application/octet-stream'
 ) {
 	await ensureBucketExists(BUCKET_NAME);
-	
+
 	const command = new PutObjectCommand({
 		Bucket: BUCKET_NAME,
 		Key: fileName,
@@ -86,7 +87,7 @@ export async function getObjectFromS3(fileName: string): Promise<Buffer> {
 	});
 
 	const response = await s3Client.send(command);
-	
+
 	if (!response.Body) {
 		throw new Error('No body in S3 response');
 	}
@@ -94,7 +95,7 @@ export async function getObjectFromS3(fileName: string): Promise<Buffer> {
 	// Convert the ReadableStream to Buffer
 	const chunks: Uint8Array[] = [];
 	const reader = (response.Body as any).getReader();
-	
+
 	while (true) {
 		const { done, value } = await reader.read();
 		if (done) break;

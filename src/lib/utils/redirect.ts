@@ -8,11 +8,11 @@ export function isSvelteKitRedirect(error: unknown): boolean {
 		const status = (error as any).status;
 		return typeof status === 'number' && status >= 300 && status < 400;
 	}
-	
+
 	// Also check for Response objects that are redirects
 	if (error instanceof Response) {
 		return error.status >= 300 && error.status < 400;
 	}
-	
+
 	return false;
 }

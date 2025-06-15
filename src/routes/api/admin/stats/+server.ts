@@ -100,29 +100,32 @@ export const GET: RequestHandler = async ({ locals }) => {
 		// Process recent activity
 		const [recentUsers, recentProjects, recentTasks] = recentActivity;
 		const activityFeed = [
-			...recentUsers.map(u => ({
+			...recentUsers.map((u) => ({
 				type: 'user_created',
 				description: `New user "${u.name}" registered`,
 				timestamp: u.createAt,
 				id: u.id
 			})),
-			...recentProjects.map(p => ({
+			...recentProjects.map((p) => ({
 				type: 'project_created',
 				description: `Project "${p.name}" created by ${p.user.name}`,
 				timestamp: p.createdAt,
 				id: p.id
 			})),
-			...recentTasks.map(t => ({
+			...recentTasks.map((t) => ({
 				type: 'task_created',
 				description: `Task "${t.title}" created in project "${t.project.name}"`,
 				timestamp: t.createdAt,
 				id: t.id
 			}))
-		].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+		]
+			.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+			.slice(0, 10);
 
 		// Calculate growth percentages (simplified - would need historical data for accurate calculations)
 		const userGrowthRate = totalUsers > 0 ? Math.round((newUsersThisMonth / totalUsers) * 100) : 0;
-		const projectGrowthRate = totalProjects > 0 ? Math.round((newProjectsThisMonth / totalProjects) * 100) : 0;
+		const projectGrowthRate =
+			totalProjects > 0 ? Math.round((newProjectsThisMonth / totalProjects) * 100) : 0;
 
 		return json({
 			success: true,
@@ -143,14 +146,20 @@ export const GET: RequestHandler = async ({ locals }) => {
 					projectGrowthRate
 				},
 				distribution: {
-					usersByRole: usersByRole.reduce((acc, item) => {
-						acc[item.role] = item._count.role;
-						return acc;
-					}, {} as Record<string, number>),
-					tasksByStatus: projectsByStatus.reduce((acc, item) => {
-						acc[item.status] = item._count.status;
-						return acc;
-					}, {} as Record<string, number>)
+					usersByRole: usersByRole.reduce(
+						(acc, item) => {
+							acc[item.role] = item._count.role;
+							return acc;
+						},
+						{} as Record<string, number>
+					),
+					tasksByStatus: projectsByStatus.reduce(
+						(acc, item) => {
+							acc[item.status] = item._count.status;
+							return acc;
+						},
+						{} as Record<string, number>
+					)
 				},
 				recentActivity: activityFeed
 			}

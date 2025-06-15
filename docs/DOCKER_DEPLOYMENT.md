@@ -75,6 +75,7 @@ chmod +x scripts/deploy.sh
 ### 4. Access the Application
 
 The application will be available at:
+
 - **Main App**: http://localhost:3930 (or your configured ORIGIN)
 - **MinIO Console**: http://localhost:9001 (if using storage profile)
 - **pgAdmin**: http://localhost:8080 (if using tools profile)
@@ -239,20 +240,32 @@ docker stats
 
 ### Common Issues
 
-1. **Database Connection Issues**   ```bash
+1. **Database Connection Issues** ```bash
+
    # Check if database is running
+
    docker compose logs db
-   
+
    # Run migrations manually
+
    docker compose run --rm app bunx prisma migrate deploy
+
    ```
 
-2. **Email Issues**   ```bash
+   ```
+
+2. **Email Issues** ```bash
+
    # Test email configuration
+
    docker compose run --rm app bun run scripts/test-email.js your-email@example.com
+
+   ```
+
    ```
 
 3. **Permission Issues**
+
    ```bash
    # Fix file permissions
    sudo chown -R $USER:$USER .

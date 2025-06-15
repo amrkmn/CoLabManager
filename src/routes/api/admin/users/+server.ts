@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 						{ name: { contains: search, mode: 'insensitive' as const } },
 						{ email: { contains: search, mode: 'insensitive' as const } }
 					]
-			  }
+				}
 			: {};
 
 		const [users, totalCount] = await Promise.all([

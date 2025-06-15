@@ -2,6 +2,7 @@
 	import Header from '$lib/components/Header.svelte';
 	import AddUserModal from '$lib/components/modals/AddUserModal.svelte';
 	import { cn } from '$lib/utils/style';
+	import { formatDateTime } from '$lib/utils/date';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -329,31 +330,12 @@
 			selectedUsers = [...selectedUsers, userId];
 		}
 	}
-
 	function toggleProjectSelection(projectId: string) {
 		if (selectedProjects.includes(projectId)) {
 			selectedProjects = selectedProjects.filter((id) => id !== projectId);
 		} else {
 			selectedProjects = [...selectedProjects, projectId];
 		}
-	}
-
-	function formatDate(dateString: string) {
-		return new Date(dateString).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		});
-	}
-
-	function formatDateTime(dateString: string) {
-		return new Date(dateString).toLocaleString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		});
 	}
 </script>
 
@@ -666,7 +648,7 @@
 											<td
 												class="px-6 py-4 align-middle text-sm whitespace-nowrap text-slate-500 dark:text-slate-400"
 											>
-												{formatDate(user.createAt)}
+												{formatDateTime(user.createAt)}
 											</td>
 											<!-- Activity -->
 											<td
@@ -813,7 +795,7 @@
 											<td
 												class="px-6 py-4 text-sm whitespace-nowrap text-slate-500 dark:text-slate-400"
 											>
-												{formatDate(project.createdAt)}
+												{formatDateTime(project.createdAt)}
 											</td>
 											<td
 												class="px-6 py-4 text-sm whitespace-nowrap text-slate-500 dark:text-slate-400"

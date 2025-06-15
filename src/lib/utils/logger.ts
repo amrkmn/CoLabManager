@@ -2,7 +2,7 @@
  * Simple logger utility for the PTA application
  */
 
-import { env } from "$env/dynamic/private";
+import { env } from '$env/dynamic/private';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 

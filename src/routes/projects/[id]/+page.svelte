@@ -6,6 +6,7 @@
 	import ProjectCollaborators from '$lib/components/ProjectCollaborators.svelte';
 	import SideNav from '$lib/components/SideNav.svelte';
 	import { cn } from '$lib/utils/style';
+	import { formatDateTime } from '$lib/utils/date';
 	let { data } = $props();
 
 	const projectId = $derived(page.params.id);
@@ -166,7 +167,8 @@
 						</p>
 					</div>
 				</div>
-			{:else}				<!-- Project Header -->
+			{:else}
+				<!-- Project Header -->
 				<div
 					class="border-b border-slate-200 bg-white/50 p-4 dark:border-slate-700 dark:bg-slate-800/50"
 				>
@@ -176,7 +178,9 @@
 					{/if}
 					<div class="mt-3 flex items-center justify-between">
 						<div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-							<span>Created: {new Date(project.createdAt).toLocaleDateString()}</span>
+							<span title={new Date(project.createdAt).toLocaleString()}>
+								Created: {formatDateTime(project.createdAt)}
+							</span>
 							<span>•</span>
 							<span>{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</span>
 						</div>

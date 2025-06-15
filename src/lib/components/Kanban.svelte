@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/style';
+	import { formatCompactDateTime } from '$lib/utils/date';
 	import { onMount } from 'svelte';
 
 	let { projectId = null } = $props();
@@ -418,6 +419,7 @@
 										<a
 											href={file.path}
 											target="_blank"
+											title={`${file.name} - Uploaded: ${formatCompactDateTime(file.uploadedAt)}`}
 											class="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
 										>
 											<svg
@@ -442,7 +444,9 @@
 							<div
 								class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"
 							>
-								<span>{new Date(task.createdAt).toLocaleDateString()}</span>
+								<span title={new Date(task.createdAt).toLocaleString()}>
+									{formatCompactDateTime(task.createdAt)}
+								</span>
 								<button
 									onclick={(e) => {
 										e.stopPropagation();
