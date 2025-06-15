@@ -83,7 +83,7 @@ EMAIL_FROM="your-email@gmail.com"
 EMAIL_FROM_NAME="PTA Team"
 
 # Application URL
-APP_URL="http://localhost:5173"
+ORIGIN="http://localhost:5173"
 ```
 
 Set up the database:
@@ -184,7 +184,7 @@ The application can be deployed to any platform that supports Node.js applicatio
 1. Set up your production database
 2. Configure environment variables on your hosting platform
 3. Set up your SMTP email service
-4. Update the `APP_URL` to your production domain
+4. Update the `ORIGIN` to your production domain
 
 ## Contributing
 

@@ -140,7 +140,7 @@ case $COMMAND in
         docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" $PROFILES up -d
         
         print_success "CoLab Manager deployed successfully!"
-        print_status "Application should be available at the configured APP_URL"
+        print_status "Application should be available at the configured ORIGIN"
         ;;
         
     update)

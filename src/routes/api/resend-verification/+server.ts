@@ -34,7 +34,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			data: { verificationToken }
 		});
 		// Send verification email
-		const baseUrl = env.APP_URL || 'http://localhost:5173';
+		const baseUrl = env.ORIGIN || 'http://localhost:5173';
 		const verificationUrl = `${baseUrl}/auth/verify?token=${verificationToken}`;
 
 		const emailResult = await sendEmail({
