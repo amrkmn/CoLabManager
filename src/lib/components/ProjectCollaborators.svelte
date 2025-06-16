@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { cn } from '$lib/utils/style';
+	import { onMount } from 'svelte';
 	import InviteCollaboratorModal from './modals/InviteCollaboratorModal.svelte';
 	import ProjectMembersModal from './modals/ProjectMembersModal.svelte';
 

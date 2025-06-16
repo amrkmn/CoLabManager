@@ -67,6 +67,11 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 			projectId: task.projectId,
 			createdAt: task.createdAt.toISOString(),
 			updatedAt: task.updatedAt.toISOString(),
+			user: {
+				id: task.user.id,
+				name: task.user.name,
+				profilePictureUrl: task.user.profilePictureUrl
+			},
 			files: task.file.map((file) => ({
 				id: file.id,
 				name: file.name,
@@ -220,6 +225,11 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			projectId: createdTask.projectId,
 			createdAt: createdTask.createdAt.toISOString(),
 			updatedAt: createdTask.updatedAt.toISOString(),
+			user: {
+				id: createdTask.user.id,
+				name: createdTask.user.name,
+				profilePictureUrl: createdTask.user.profilePictureUrl
+			},
 			files: createdTask.file.map((file) => {
 				return {
 					id: file.id,

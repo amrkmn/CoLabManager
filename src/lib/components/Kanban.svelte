@@ -3,7 +3,7 @@
 	import { formatCompactDateTime } from '$lib/utils/date';
 	import { onMount } from 'svelte';
 
-	let { projectId = null } = $props();
+	let { projectId = null, readOnly = false } = $props();
 	interface Task {
 		id: string;
 		title: string;
@@ -14,6 +14,11 @@
 		projectName?: string;
 		createdAt: string;
 		updatedAt: string;
+		user?: {
+			id: string;
+			name: string;
+			profilePictureUrl?: string;
+		};
 		files?: Array<{
 			id: string;
 			name: string;
@@ -341,8 +346,10 @@
 				class={cn(
 					'flex w-80 min-w-[280px] flex-col rounded-lg bg-white p-4 shadow-md dark:bg-slate-900'
 				)}
-				ondragover={handleDragOver}
-				ondrop={(e) => handleDrop(e, column.id)}
+				{...!readOnly && {
+					ondragover: handleDragOver,
+					ondrop: (e) => handleDrop(e, column.id)
+				}}
 			>
 				<h3 class="mb-3 text-lg font-semibold text-slate-700 dark:text-slate-200">
 					{column.name}
@@ -356,15 +363,19 @@
 						<li
 							class={cn(
 								'flex flex-col gap-2 rounded bg-slate-100 px-3 py-2 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
-								'cursor-move transition-colors hover:bg-slate-200 dark:hover:bg-slate-700'
+								readOnly
+									? 'transition-colors hover:bg-slate-200 dark:hover:bg-slate-700'
+									: 'cursor-move transition-colors hover:bg-slate-200 dark:hover:bg-slate-700'
 							)}
-							draggable="true"
-							ondragstart={(e) => handleDragStart(e, task)}
+							{...!readOnly && {
+								draggable: true,
+								ondragstart: (e) => handleDragStart(e, task)
+							}}
 						>
 							<div class="flex items-start justify-between">
 								<span class="font-medium">{task.title}</span>
 								{#if task.priority}
-									{#if editingPriority === task.id}
+									{#if !readOnly && editingPriority === task.id}
 										<select
 											value={task.priority}
 											onchange={(e) =>
@@ -386,17 +397,21 @@
 										<button
 											onclick={(e) => {
 												e.stopPropagation();
-												editingPriority = task.id;
+												if (!readOnly) {
+													editingPriority = task.id;
+												}
 											}}
 											class={cn(
-												'rounded-full px-2 py-1 text-xs transition-colors hover:opacity-80',
+												'rounded-full px-2 py-1 text-xs transition-colors',
+												readOnly ? '' : 'cursor-pointer hover:opacity-80',
 												task.priority === 'high'
 													? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
 													: task.priority === 'medium'
 														? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
 														: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
 											)}
-											title="Click to change priority"
+											title={readOnly ? `Priority: ${task.priority}` : 'Click to change priority'}
+											disabled={readOnly}
 										>
 											{task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}
 											{task.priority}
@@ -406,6 +421,26 @@
 							</div>
 							{#if task.description}
 								<p class="text-sm text-slate-600 dark:text-slate-400">{task.description}</p>
+							{/if}
+							{#if task.user}
+								<div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+									<div class="flex items-center gap-1">
+										{#if task.user.profilePictureUrl}
+											<img
+												src={task.user.profilePictureUrl}
+												alt={task.user.name}
+												class="h-4 w-4 rounded-full object-cover"
+											/>
+										{:else}
+											<div
+												class="flex h-4 w-4 items-center justify-center rounded-full bg-slate-300 text-xs font-medium text-slate-600 dark:bg-slate-600 dark:text-slate-300"
+											>
+												{task.user.name.charAt(0).toUpperCase()}
+											</div>
+										{/if}
+										<span class="truncate">{task.user.name}</span>
+									</div>
+								</div>
 							{/if}
 							{#if task.projectName && !projectId}
 								<div class="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
@@ -447,97 +482,101 @@
 								<span title={new Date(task.createdAt).toLocaleString()}>
 									{formatCompactDateTime(task.createdAt)}
 								</span>
-								<button
-									onclick={(e) => {
-										e.stopPropagation();
-										deleteTask(task.id);
-									}}
-									class="flex items-center gap-1 rounded px-2 py-1 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30"
-									title="Delete task"
-									aria-label="Delete task"
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										class="h-3 w-3"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
+								{#if !readOnly}
+									<button
+										onclick={(e) => {
+											e.stopPropagation();
+											deleteTask(task.id);
+										}}
+										class="flex items-center gap-1 rounded px-2 py-1 text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30"
+										title="Delete task"
+										aria-label="Delete task"
 									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-										/>
-									</svg>
-								</button>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											class="h-3 w-3"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+											/>
+										</svg>
+									</button>
+								{/if}
 							</div>
 						</li>
 					{/each}
 				</ul>
 
-				<form onsubmit={(e) => addTask(e, column.id)} class="flex flex-col gap-2">
-					<input
-						type="text"
-						placeholder="Add a task..."
-						bind:value={newTasks[column.id]}
-						class={cn(
-							'rounded border px-2 py-1 text-sm',
-							'border-slate-300 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-							'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
-						)}
-					/>
-					<div class="flex items-center gap-2">
-						<select
-							bind:value={newTaskPriorities[column.id]}
-							class="rounded border bg-slate-100 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-						>
-							<option value="low">🟢 Low</option>
-							<option value="medium">🟡 Medium</option>
-							<option value="high">🔴 High</option>
-						</select>
-						<label
-							class="flex cursor-pointer items-center gap-1 rounded border border-slate-300 bg-slate-100 px-2 py-1 transition hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5 text-blue-600"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								><path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-								/></svg
+				{#if !readOnly}
+					<form onsubmit={(e) => addTask(e, column.id)} class="flex flex-col gap-2">
+						<input
+							type="text"
+							placeholder="Add a task..."
+							bind:value={newTasks[column.id]}
+							class={cn(
+								'rounded border px-2 py-1 text-sm',
+								'border-slate-300 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white',
+								'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
+							)}
+						/>
+						<div class="flex items-center gap-2">
+							<select
+								bind:value={newTaskPriorities[column.id]}
+								class="rounded border bg-slate-100 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
 							>
-							<span class="hidden text-xs sm:inline">File</span>
-							<input
-								type="file"
-								accept="*"
-								onchange={(e) =>
-									(newTaskFiles[column.id] = (e.target as HTMLInputElement).files?.[0] || null)}
-								class="hidden"
-							/>
-						</label>
-						{#if newTaskFiles[column.id]}
-							<span class="max-w-[100px] truncate text-xs text-slate-500 dark:text-slate-400"
-								>{newTaskFiles[column.id]?.name}</span
+								<option value="low">🟢 Low</option>
+								<option value="medium">🟡 Medium</option>
+								<option value="high">🔴 High</option>
+							</select>
+							<label
+								class="flex cursor-pointer items-center gap-1 rounded border border-slate-300 bg-slate-100 px-2 py-1 transition hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
 							>
-						{/if}
-					</div>
-					<button
-						type="submit"
-						class={cn(
-							'rounded bg-blue-600 py-1 text-sm text-white transition',
-							'hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
-						)}
-						disabled={!newTasks[column.id]?.trim()}
-					>
-						Add Task
-					</button>
-				</form>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-5 w-5 text-blue-600"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									><path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+									/></svg
+								>
+								<span class="hidden text-xs sm:inline">File</span>
+								<input
+									type="file"
+									accept="*"
+									onchange={(e) =>
+										(newTaskFiles[column.id] = (e.target as HTMLInputElement).files?.[0] || null)}
+									class="hidden"
+								/>
+							</label>
+							{#if newTaskFiles[column.id]}
+								<span class="max-w-[100px] truncate text-xs text-slate-500 dark:text-slate-400"
+									>{newTaskFiles[column.id]?.name}</span
+								>
+							{/if}
+						</div>
+						<button
+							type="submit"
+							class={cn(
+								'rounded bg-blue-600 py-1 text-sm text-white transition',
+								'hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+							)}
+							disabled={!newTasks[column.id]?.trim()}
+						>
+							Add Task
+						</button>
+					</form>
+				{/if}
 			</div>
 		{/each}
 	</div>

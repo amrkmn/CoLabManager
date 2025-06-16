@@ -110,6 +110,11 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			projectId: updatedTask.projectId,
 			createdAt: updatedTask.createdAt.toISOString(),
 			updatedAt: updatedTask.updatedAt.toISOString(),
+			user: {
+				id: updatedTask.user.id,
+				name: updatedTask.user.name,
+				profilePictureUrl: updatedTask.user.profilePictureUrl
+			},
 			files: updatedTask.file.map((file) => ({
 				id: file.id,
 				name: file.name,

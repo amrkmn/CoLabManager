@@ -22,6 +22,13 @@ export const GET: RequestHandler = async ({ locals }) => {
 						name: true
 					}
 				},
+				user: {
+					select: {
+						id: true,
+						name: true,
+						profilePictureUrl: true
+					}
+				},
 				file: true
 			},
 			orderBy: {
@@ -40,6 +47,11 @@ export const GET: RequestHandler = async ({ locals }) => {
 				projectName: task.project.name,
 				createdAt: task.createdAt.toISOString(),
 				updatedAt: task.updatedAt.toISOString(),
+				user: {
+					id: task.user.id,
+					name: task.user.name,
+					profilePictureUrl: task.user.profilePictureUrl
+				},
 				files: task.file.map((file) => ({
 					id: file.id,
 					name: file.name,
