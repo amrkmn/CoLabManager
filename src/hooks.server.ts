@@ -1,11 +1,9 @@
-import { env } from '$env/dynamic/private';
 import { runMigrations } from '$lib/server/migrations';
-import { log } from '$lib/utils/logger';
 import {
-	deleteSessionTokenCookie,
-	invalidateSession,
-	setSessionTokenCookie,
-	validateSessionToken
+    deleteSessionTokenCookie,
+    invalidateSession,
+    setSessionTokenCookie,
+    validateSessionToken
 } from './lib/server/session';
 
 import type { Handle } from '@sveltejs/kit';

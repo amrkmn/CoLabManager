@@ -1,16 +1,6 @@
 import { env } from '$env/dynamic/private';
 import nodemailer from 'nodemailer';
 
-/**
- * Email Service for CoLab Manager
- *
- * Features:
- * - SMTP configuration with environment variables
- * - List-Unsubscribe header support for SMTP2GO compliance
- * - %%UNSUBSCRIBE%% placeholder support (handled by SMTP2GO)
- * - HTML and text email templates
- */
-
 // Email configuration from environment variables
 const transporter = nodemailer.createTransport({
 	host: env.SMTP_HOST || 'smtp.gmail.com',
