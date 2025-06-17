@@ -75,7 +75,7 @@
 	)}
 >
 	<a href="/dashboard"
-		><h1 class="mb-0 text-base font-medium text-slate-800 dark:text-white">Dashboard</h1></a
+		><h1 class="mb-0 text-base font-medium text-slate-800 dark:text-white">CoLab Manager</h1></a
 	>
 	<div class="flex items-center gap-4">
 		<!-- Avatar & Dropdown Trigger -->
