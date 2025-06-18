@@ -1,5 +1,6 @@
 import { getPublicURL } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
+import { realtimeBroadcaster } from '$lib/server/realtime';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 
@@ -123,6 +124,15 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			}))
 		};
 
+		// Broadcast task update event to other users
+		if (status !== undefined) {
+			// If status changed, broadcast as task moved
+			realtimeBroadcaster.broadcastTaskMoved(projectId, transformedTask, user.id);
+		} else {
+			// Otherwise, broadcast as general task update
+			realtimeBroadcaster.broadcastTaskUpdated(projectId, transformedTask, user.id);
+		}
+
 		return json(transformedTask);
 	} catch (err) {
 		console.error('Error updating task:', err);
@@ -175,6 +185,9 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 				}
 			})
 		]);
+
+		// Broadcast task deletion event to other users
+		realtimeBroadcaster.broadcastTaskDeleted(projectId, taskId, user.id);
 
 		return json({ success: true, message: 'Task deleted successfully' });
 	} catch (err) {

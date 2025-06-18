@@ -1,9 +1,9 @@
 import { runMigrations } from '$lib/server/migrations';
 import {
-    deleteSessionTokenCookie,
-    invalidateSession,
-    setSessionTokenCookie,
-    validateSessionToken
+	deleteSessionTokenCookie,
+	invalidateSession,
+	setSessionTokenCookie,
+	validateSessionToken
 } from './lib/server/session';
 
 import type { Handle } from '@sveltejs/kit';

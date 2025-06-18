@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/style';
 	import { formatCompactDateTime } from '$lib/utils/date';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { realtimeStore, type RealtimeEvent } from '$lib/stores/realtime';
 
 	let { projectId = null, readOnly = false } = $props();
 	interface Task {
@@ -56,13 +57,37 @@
 	let isLoading = $state(false);
 	let error = $state('');
 	let editingPriority: string | null = $state(null); // Track which task's priority is being edited
+	let realtimeConnected = $state(false);
+	let realtimeError = $state<string | null>(null);
+
+	// Subscribe to realtime events
+	let unsubscribeEvents: (() => void) | null = null;
+	let unsubscribeConnected: (() => void) | null = null;
+	let unsubscribeError: (() => void) | null = null;
 
 	onMount(() => {
 		if (projectId) {
 			loadProjectTasks();
+			// Connect to real-time events for project-specific views
+			realtimeStore.connect(projectId);
 		} else {
 			loadGeneralTasks();
 		}
+
+		// Subscribe to realtime events
+		unsubscribeEvents = realtimeStore.events.subscribe((event: RealtimeEvent | null) => {
+			if (event && event.type !== 'connected' && event.type !== 'heartbeat') {
+				handleRealtimeEvent(event);
+			}
+		});
+
+		unsubscribeConnected = realtimeStore.connected.subscribe((connected: boolean) => {
+			realtimeConnected = connected;
+		});
+
+		unsubscribeError = realtimeStore.error.subscribe((err: string | null) => {
+			realtimeError = err;
+		});
 
 		// Add document click listener to close priority editor
 		document.addEventListener('click', handleDocumentClick);
@@ -71,6 +96,16 @@
 		return () => {
 			document.removeEventListener('click', handleDocumentClick);
 		};
+	});
+
+	onDestroy(() => {
+		// Clean up subscriptions
+		if (unsubscribeEvents) unsubscribeEvents();
+		if (unsubscribeConnected) unsubscribeConnected();
+		if (unsubscribeError) unsubscribeError();
+
+		// Disconnect from real-time events
+		realtimeStore.disconnect();
 	});
 
 	async function loadProjectTasks() {
@@ -319,6 +354,73 @@
 			editingPriority = null;
 		}
 	}
+
+	// Handle real-time events
+	function handleRealtimeEvent(event: RealtimeEvent) {
+		console.log('Handling realtime event:', event);
+
+		switch (event.type) {
+			case 'task_created':
+				handleTaskCreated(event.data.task);
+				break;
+			case 'task_updated':
+				handleTaskUpdated(event.data.task);
+				break;
+			case 'task_moved':
+				handleTaskMoved(event.data.task);
+				break;
+			case 'task_deleted':
+				handleTaskDeleted(event.data.taskId);
+				break;
+		}
+	}
+
+	function handleTaskCreated(task: Task) {
+		const columnIndex = columns.findIndex((col) => col.id === task.status);
+		if (columnIndex !== -1) {
+			// Check if task already exists to avoid duplicates
+			const existingTask = columns[columnIndex].tasks.find((t) => t.id === task.id);
+			if (!existingTask) {
+				columns[columnIndex] = {
+					...columns[columnIndex],
+					tasks: [task, ...columns[columnIndex].tasks]
+				};
+			}
+		}
+	}
+
+	function handleTaskUpdated(task: Task) {
+		// Update task in its current column
+		columns = columns.map((col) => ({
+			...col,
+			tasks: col.tasks.map((t) => (t.id === task.id ? task : t))
+		}));
+	}
+
+	function handleTaskMoved(task: Task) {
+		// Remove task from all columns
+		columns = columns.map((col) => ({
+			...col,
+			tasks: col.tasks.filter((t) => t.id !== task.id)
+		}));
+
+		// Add task to the new column
+		const newColumnIndex = columns.findIndex((col) => col.id === task.status);
+		if (newColumnIndex !== -1) {
+			columns[newColumnIndex] = {
+				...columns[newColumnIndex],
+				tasks: [...columns[newColumnIndex].tasks, task]
+			};
+		}
+	}
+
+	function handleTaskDeleted(taskId: string) {
+		// Remove task from all columns
+		columns = columns.map((col) => ({
+			...col,
+			tasks: col.tasks.filter((t) => t.id !== taskId)
+		}));
+	}
 </script>
 
 {#if error}
@@ -326,6 +428,31 @@
 		class="mb-4 rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
 	>
 		<p class="text-sm text-red-600 dark:text-red-400">{error}</p>
+	</div>
+{/if}
+
+{#if projectId && !readOnly}
+	<!-- Real-time connection status -->
+	<div class="mb-3 flex items-center justify-between">
+		<div class="flex items-center gap-2 text-sm">
+			<span class="text-slate-600 dark:text-slate-400">Real-time updates:</span>
+			{#if realtimeConnected}
+				<span class="flex items-center gap-1 text-green-600 dark:text-green-400">
+					<span class="h-2 w-2 rounded-full bg-green-500"></span>
+					Connected
+				</span>
+			{:else if realtimeError}
+				<span class="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+					<span class="h-2 w-2 rounded-full bg-orange-500"></span>
+					Reconnecting...
+				</span>
+			{:else}
+				<span class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+					<span class="h-2 w-2 rounded-full bg-slate-400"></span>
+					Disconnected
+				</span>
+			{/if}
+		</div>
 	</div>
 {/if}
 

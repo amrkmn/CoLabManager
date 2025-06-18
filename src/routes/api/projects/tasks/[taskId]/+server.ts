@@ -1,5 +1,6 @@
 import { prisma } from '$lib/server/prisma.js';
 import { getPublicURL } from '$lib/server/minio.js';
+import { realtimeBroadcaster } from '$lib/server/realtime';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -10,6 +11,11 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		}
 
 		const { taskId } = params;
+
+		if (!taskId) {
+			return json({ error: true, message: 'Task ID is required' }, { status: 400 });
+		}
+
 		const { status, title, description, priority } = await request.json();
 
 		// Verify the task belongs to the user's project
@@ -85,7 +91,8 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 				file: true
 			}
 		});
-		return json({
+
+		const transformedTask = {
 			id: updatedTask.id,
 			title: updatedTask.title,
 			description: updatedTask.description,
@@ -101,7 +108,26 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 				path: getPublicURL(file.path),
 				uploadedAt: file.uploadedAt.toISOString()
 			}))
-		});
+		};
+
+		// Broadcast task update event to other users
+		if (status !== undefined) {
+			// If status changed, broadcast as task moved
+			realtimeBroadcaster.broadcastTaskMoved(
+				existingTask.projectId,
+				transformedTask,
+				locals.user.id
+			);
+		} else {
+			// Otherwise, broadcast as general task update
+			realtimeBroadcaster.broadcastTaskUpdated(
+				existingTask.projectId,
+				transformedTask,
+				locals.user.id
+			);
+		}
+
+		return json(transformedTask);
 	} catch (error) {
 		console.error('Error updating task:', error);
 		return json({ error: true, message: 'Internal server error' }, { status: 500 });
@@ -115,6 +141,10 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		}
 
 		const { taskId } = params;
+
+		if (!taskId) {
+			return json({ error: true, message: 'Task ID is required' }, { status: 400 });
+		}
 
 		// Verify the task belongs to the user's project
 		const existingTask = await prisma.task.findFirst({
@@ -134,6 +164,9 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		await prisma.task.delete({
 			where: { id: taskId }
 		});
+
+		// Broadcast task deletion event to other users
+		realtimeBroadcaster.broadcastTaskDeleted(existingTask.projectId, taskId, locals.user.id);
 
 		return json({ success: true, message: 'Task deleted successfully' });
 	} catch (error) {

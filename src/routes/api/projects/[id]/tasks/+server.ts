@@ -1,5 +1,6 @@
 import { getPublicURL, uploadToS3 } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
+import { realtimeBroadcaster } from '$lib/server/realtime';
 import { createId } from '@paralleldrive/cuid2';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
@@ -239,6 +240,9 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 				};
 			})
 		};
+
+		// Broadcast task creation event to other users
+		realtimeBroadcaster.broadcastTaskCreated(projectId, transformedTask, user.id);
 
 		return json(transformedTask, { status: 201 });
 	} catch (err) {
