@@ -42,7 +42,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 			// Time-based counts
 			prisma.user.count({
-				where: { createAt: { gte: startOfMonth } }
+				where: { createdAt: { gte: startOfMonth } }
 			}),
 			prisma.project.count({
 				where: { createdAt: { gte: startOfMonth } }
@@ -66,11 +66,11 @@ export const GET: RequestHandler = async ({ locals }) => {
 			Promise.all([
 				prisma.user.findMany({
 					take: 5,
-					orderBy: { createAt: 'desc' },
+					orderBy: { createdAt: 'desc' },
 					select: {
 						id: true,
 						name: true,
-						createAt: true
+						createdAt: true
 					}
 				}),
 				prisma.project.findMany({
@@ -103,7 +103,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 			...recentUsers.map((u) => ({
 				type: 'user_created',
 				description: `New user "${u.name}" registered`,
-				timestamp: u.createAt,
+				timestamp: u.createdAt,
 				id: u.id
 			})),
 			...recentProjects.map((p) => ({

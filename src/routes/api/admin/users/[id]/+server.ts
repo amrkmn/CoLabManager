@@ -34,7 +34,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 				email: true,
 				contactNumber: true,
 				role: true,
-				createAt: true,
+				createdAt: true,
 				avatar: true,
 				_count: {
 					select: {
@@ -112,7 +112,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 				email: true,
 				contactNumber: true,
 				role: true,
-				createAt: true,
+				createdAt: true,
 				avatar: true
 			}
 		});

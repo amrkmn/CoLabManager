@@ -20,13 +20,13 @@ export const load = async ({ locals }) => {
 			prisma.task.count(),
 			prisma.user.findMany({
 				take: 5,
-				orderBy: { createAt: 'desc' },
+				orderBy: { createdAt: 'desc' },
 				select: {
 					id: true,
 					name: true,
 					email: true,
 					role: true,
-					createAt: true
+					createdAt: true
 				}
 			})
 		]);

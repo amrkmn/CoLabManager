@@ -30,14 +30,14 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 				where,
 				skip,
 				take: limit,
-				orderBy: { createAt: 'desc' },
+				orderBy: { createdAt: 'desc' },
 				select: {
 					id: true,
 					name: true,
 					email: true,
 					contactNumber: true,
 					role: true,
-					createAt: true,
+					createdAt: true,
 					avatar: true,
 					_count: {
 						select: {
@@ -118,7 +118,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				email: true,
 				contactNumber: true,
 				role: true,
-				createAt: true,
+				createdAt: true,
 				avatar: true
 			}
 		});
