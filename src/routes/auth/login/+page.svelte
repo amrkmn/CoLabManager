@@ -112,11 +112,13 @@
 						type="email"
 						bind:value={email}
 						required
+						disabled={loading}
 						class={cn(
 							'w-full rounded-md border px-4 py-2',
 							'bg-white dark:border-slate-600 dark:bg-slate-800',
 							'text-slate-900 placeholder:text-slate-400 dark:text-white',
-							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+							'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+							'disabled:cursor-not-allowed disabled:opacity-50'
 						)}
 					/>
 				</div>
@@ -132,23 +134,48 @@
 						type="password"
 						bind:value={password}
 						required
+						disabled={loading}
 						class={cn(
 							'w-full rounded-md border px-4 py-2',
 							'bg-white dark:border-slate-600 dark:bg-slate-800',
 							'text-slate-900 placeholder:text-slate-400 dark:text-white',
-							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+							'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+							'disabled:cursor-not-allowed disabled:opacity-50'
 						)}
 					/>
 				</div>
 
 				<button
 					type="submit"
+					disabled={loading}
 					class={cn(
 						'w-full bg-blue-600 font-medium text-white hover:cursor-pointer hover:bg-blue-700',
-						'rounded-md py-2 shadow-sm transition duration-200'
+						'rounded-md py-2 shadow-sm transition duration-200',
+						'disabled:cursor-not-allowed disabled:opacity-50',
+						'flex items-center justify-center gap-2'
 					)}
 				>
-					Login
+					{#if loading}
+						<svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+								fill="none"
+							></circle>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							></path>
+						</svg>
+						Signing in...
+					{:else}
+						Login
+					{/if}
 				</button>
 			</form>
 

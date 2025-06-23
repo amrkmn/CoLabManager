@@ -2,8 +2,9 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { prisma } from '$lib/server/prisma';
 import { sendEmail, generateProjectInviteEmailHtml } from '$lib/server/email';
-import { createId } from '@paralleldrive/cuid2';
 import { env } from '$env/dynamic/private';
+import { ulid } from 'ulid';
+import { randomUUID } from 'crypto';
 
 // GET /api/projects/[id]/members - List all members of a project
 export const GET: RequestHandler = async ({ params, locals }) => {
@@ -107,12 +108,12 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			});
 		} else {
 			// User doesn't exist, create invite token
-			const inviteToken = createId();
+			const inviteToken = ulid();
 			const inviteUrl = `${env.ORIGIN || 'http://localhost:5173'}/auth/invite?token=${inviteToken}`;
 
 			// Store invite details in a temporary way (you might want to create a separate table for this)
 			// For now, we'll create a user record with invite token
-			const hashedPassword = await Bun.password.hash(createId()); // temporary password
+			const hashedPassword = await Bun.password.hash(randomUUID()); // temporary password
 			const newUser = await prisma.user.create({
 				data: {
 					name: email.split('@')[0], // temporary name

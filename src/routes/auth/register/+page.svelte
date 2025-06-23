@@ -19,6 +19,7 @@
 	let selectedCountry = $state<CountryCode | null>(null);
 	let contactNumber = $state<E164Number | null>(null);
 	let validPhoneNumber = $state(true);
+	let isRegistering = $state(false);
 
 	onMount(async () => {
 		const res = await fetch('https://ipapi.co/json');
@@ -32,22 +33,33 @@
 	async function handleRegister(e: Event) {
 		e.preventDefault();
 		errors = [];
-		if (password !== confirmPassword) errors.push(errorMessages.password_mismatch);
+		isRegistering = true;
 
-		const res = await fetch('/api/register', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ name, email, password, contactNumber })
-		});
+		try {
+			if (password !== confirmPassword) {
+				errors.push(errorMessages.password_mismatch);
+				return;
+			}
 
-		if (res.ok) {
-			const result = await res.json();
-			registrationSuccess = true;
-			successMessage = result.message;
-			isFirstUser = result.isFirstUser;
-		} else {
-			const responseData = (await res.json()) as { error: boolean; message: string[] };
-			errors = responseData.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
+			const res = await fetch('/api/register', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name, email, password, contactNumber })
+			});
+
+			if (res.ok) {
+				const result = await res.json();
+				registrationSuccess = true;
+				successMessage = result.message;
+				isFirstUser = result.isFirstUser;
+			} else {
+				const responseData = (await res.json()) as { error: boolean; message: string[] };
+				errors = responseData.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
+			}
+		} catch (err) {
+			errors.push('Registration failed. Please try again.');
+		} finally {
+			isRegistering = false;
 		}
 	}
 </script>
@@ -159,11 +171,13 @@
 						type="text"
 						bind:value={name}
 						required
+						disabled={isRegistering}
 						class={cn(
 							'w-full rounded-md border px-4 py-2',
 							'bg-white dark:border-slate-600 dark:bg-slate-800',
 							'text-slate-900 placeholder:text-slate-400 dark:text-white',
-							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+							'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+							'disabled:cursor-not-allowed disabled:opacity-50'
 						)}
 					/>
 				</div>
@@ -180,11 +194,13 @@
 						type="email"
 						bind:value={email}
 						required
+						disabled={isRegistering}
 						class={cn(
 							'w-full rounded-md border px-4 py-2',
 							'bg-white dark:border-slate-600 dark:bg-slate-800',
 							'text-slate-900 placeholder:text-slate-400 dark:text-white',
-							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+							'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+							'disabled:cursor-not-allowed disabled:opacity-50'
 						)}
 					/>
 				</div>
@@ -201,11 +217,13 @@
 						type="password"
 						bind:value={password}
 						required
+						disabled={isRegistering}
 						class={cn(
 							'w-full rounded-md border px-4 py-2',
 							'bg-white dark:border-slate-600 dark:bg-slate-800',
 							'text-slate-900 placeholder:text-slate-400 dark:text-white',
-							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+							'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+							'disabled:cursor-not-allowed disabled:opacity-50'
 						)}
 					/>
 				</div>
@@ -222,11 +240,13 @@
 						type="password"
 						bind:value={confirmPassword}
 						required
+						disabled={isRegistering}
 						class={cn(
 							'w-full rounded-md border px-4 py-2',
 							'bg-white dark:border-slate-600 dark:bg-slate-800',
 							'text-slate-900 placeholder:text-slate-400 dark:text-white',
-							'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+							'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+							'disabled:cursor-not-allowed disabled:opacity-50'
 						)}
 					/>
 				</div>
@@ -274,10 +294,31 @@
 					class={cn(
 						'w-full font-medium text-white hover:cursor-pointer',
 						'rounded-md py-2 shadow-sm transition duration-200',
+						'disabled:cursor-not-allowed disabled:opacity-50',
+						'flex items-center justify-center gap-2',
 						data.isFirstUser ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'
 					)}
+					disabled={isRegistering}
 				>
-					{#if data.isFirstUser}
+					{#if isRegistering}
+						<svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+								fill="none"
+							></circle>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							></path>
+						</svg>
+						{data.isFirstUser ? 'Creating Admin Account...' : 'Registering...'}
+					{:else if data.isFirstUser}
 						Create Admin Account
 					{:else}
 						Register
@@ -292,3 +333,23 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.loader {
+		border: 2px solid rgba(255, 255, 255, 0.6);
+		border-top: 2px solid rgba(255, 255, 255, 1);
+		border-radius: 50%;
+		width: 1rem;
+		height: 1rem;
+		animation: spin 0.6s linear infinite;
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+</style>

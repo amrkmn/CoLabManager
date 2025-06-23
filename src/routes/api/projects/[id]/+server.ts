@@ -1,6 +1,7 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json, error } from '@sveltejs/kit';
 import { prisma } from '$lib/server/prisma';
+import { deleteFromS3 } from '$lib/server/minio';
 
 // GET /api/projects/[id] - Get a specific project
 export const GET: RequestHandler = async ({ params, locals }) => {
@@ -187,7 +188,8 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 						messages: true,
 						members: true
 					}
-				}
+				},
+				files: true // Include files to delete them from storage
 			}
 		});
 
@@ -213,6 +215,18 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 			}
 
 			return json({ error: true, message: 'Project not found' }, { status: 404 });
+		}
+
+		// Delete files from storage first
+		if (existingProject.files && existingProject.files.length > 0) {
+			for (const file of existingProject.files) {
+				try {
+					await deleteFromS3(file.path);
+				} catch (error) {
+					console.error(`Failed to delete file ${file.path} from storage:`, error);
+					// Continue with deletion even if file deletion fails
+				}
+			}
 		}
 
 		// Delete all related data first (due to foreign key constraints)

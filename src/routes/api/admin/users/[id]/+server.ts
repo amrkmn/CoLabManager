@@ -1,7 +1,9 @@
 import { prisma } from '$lib/server/prisma';
+import { deleteFromS3 } from '$lib/server/minio';
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
+import path from 'path';
 
 const UpdateUserSchema = z.object({
 	name: z.string().min(1, 'Name is required').optional(),
@@ -138,9 +140,12 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 	}
 
 	try {
-		// Check if user exists
+		// Check if user exists and get their data including files
 		const existingUser = await prisma.user.findUnique({
-			where: { id: userId }
+			where: { id: userId },
+			include: {
+				files: true // Get all files uploaded by this user
+			}
 		});
 
 		if (!existingUser) {
@@ -150,6 +155,30 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		// Prevent admin from deleting themselves
 		if (userId === user.id) {
 			return json({ error: true, message: 'Cannot delete your own account' }, { status: 400 });
+		}
+
+		// Delete user's profile picture from S3/MinIO if it exists
+		if (existingUser.profilePictureUrl) {
+			try {
+				// Extract the file path from the URL pattern
+				const profilePicturePath = `users/${userId}/pfp/image${path.extname(existingUser.profilePictureUrl)}`;
+				await deleteFromS3(profilePicturePath);
+			} catch (error) {
+				console.error(`Failed to delete profile picture for user ${userId}:`, error);
+				// Continue with deletion even if file deletion fails
+			}
+		}
+
+		// Delete all files uploaded by this user from S3/MinIO
+		if (existingUser.files && existingUser.files.length > 0) {
+			for (const file of existingUser.files) {
+				try {
+					await deleteFromS3(file.path);
+				} catch (error) {
+					console.error(`Failed to delete file ${file.path} for user ${userId}:`, error);
+					// Continue with deletion even if file deletion fails
+				}
+			}
 		}
 
 		// Delete user and all related data

@@ -1,4 +1,4 @@
-import { getPublicURL } from '$lib/server/minio';
+import { getPublicURL, deleteFromS3 } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
 import { realtimeBroadcaster } from '$lib/server/realtime';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -165,6 +165,9 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 						}
 					}
 				}
+			},
+			include: {
+				file: true // Include files to delete them from storage
 			}
 		});
 
@@ -172,7 +175,19 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 			return json({ error: true, message: 'Task not found' }, { status: 404 });
 		}
 
-		// Delete associated files first, then the task
+		// Delete files from storage first
+		if (task.file && task.file.length > 0) {
+			for (const file of task.file) {
+				try {
+					await deleteFromS3(file.path);
+				} catch (error) {
+					console.error(`Failed to delete file ${file.path} from storage:`, error);
+					// Continue with deletion even if file deletion fails
+				}
+			}
+		}
+
+		// Delete associated files from database, then the task
 		await prisma.$transaction([
 			prisma.file.deleteMany({
 				where: {

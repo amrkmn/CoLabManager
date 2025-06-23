@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import Header from '$lib/components/Header.svelte';
 	import Kanban from '$lib/components/Kanban.svelte';
@@ -26,11 +25,6 @@
 			}, 5000);
 		}
 	});
-
-	// Call this after a project is created to refresh dashboard data
-	async function handleProjectCreated() {
-		await invalidate('app:projects');
-	}
 </script>
 
 <div

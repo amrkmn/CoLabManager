@@ -59,6 +59,11 @@
 	let editingPriority: string | null = $state(null); // Track which task's priority is being edited
 	let realtimeConnected = $state(false);
 	let realtimeError = $state<string | null>(null);
+	let taskCreationLoading: Record<string, boolean> = $state({
+		todo: false,
+		'in-progress': false,
+		done: false
+	});
 
 	// Subscribe to realtime events
 	let unsubscribeEvents: (() => void) | null = null;
@@ -163,18 +168,22 @@
 			}
 		});
 	}
-
 	async function addTask(event: Event, columnId: 'todo' | 'in-progress' | 'done') {
 		event.preventDefault();
 
 		if (!newTasks[columnId]?.trim()) {
 			return;
 		}
+
 		try {
 			if (!projectId) {
 				error = 'Cannot create tasks in general view. Please select a specific project.';
 				return;
 			}
+
+			// Set loading state for this column
+			taskCreationLoading[columnId] = true;
+			error = ''; // Clear any previous errors
 
 			const endpoint = `/api/projects/${projectId}/tasks`;
 			const formData = new FormData();
@@ -205,13 +214,18 @@
 					...columns[columnIndex],
 					tasks: [...columns[columnIndex].tasks, newTask]
 				};
-			} // Clear the input
+			}
+
+			// Clear the input
 			newTasks[columnId] = '';
 			newTaskFiles[columnId] = null;
-			newTaskPriorities[columnId] = 'low';
+			newTaskPriorities[columnId] = 'medium';
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to add task';
 			console.error('Error adding task:', err);
+		} finally {
+			// Always clear loading state
+			taskCreationLoading[columnId] = false;
 		}
 	}
 	async function moveTask(taskId: string, newStatus: 'todo' | 'in-progress' | 'done') {
@@ -639,30 +653,35 @@
 						</li>
 					{/each}
 				</ul>
-
 				{#if !readOnly}
 					<form onsubmit={(e) => addTask(e, column.id)} class="flex flex-col gap-2">
 						<input
 							type="text"
 							placeholder="Add a task..."
 							bind:value={newTasks[column.id]}
+							disabled={taskCreationLoading[column.id]}
 							class={cn(
 								'rounded border px-2 py-1 text-sm',
 								'border-slate-300 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white',
-								'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none'
+								'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none',
+								'disabled:cursor-not-allowed disabled:opacity-50'
 							)}
 						/>
 						<div class="flex items-center gap-2">
 							<select
 								bind:value={newTaskPriorities[column.id]}
-								class="rounded border bg-slate-100 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+								disabled={taskCreationLoading[column.id]}
+								class="rounded border bg-slate-100 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
 							>
 								<option value="low">🟢 Low</option>
 								<option value="medium">🟡 Medium</option>
 								<option value="high">🔴 High</option>
 							</select>
 							<label
-								class="flex cursor-pointer items-center gap-1 rounded border border-slate-300 bg-slate-100 px-2 py-1 transition hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+								class={cn(
+									'flex cursor-pointer items-center gap-1 rounded border border-slate-300 bg-slate-100 px-2 py-1 transition hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700',
+									taskCreationLoading[column.id] && 'cursor-not-allowed opacity-50'
+								)}
 							>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -681,6 +700,7 @@
 								<input
 									type="file"
 									accept="*"
+									disabled={taskCreationLoading[column.id]}
 									onchange={(e) =>
 										(newTaskFiles[column.id] = (e.target as HTMLInputElement).files?.[0] || null)}
 									class="hidden"
@@ -696,11 +716,35 @@
 							type="submit"
 							class={cn(
 								'rounded bg-blue-600 py-1 text-sm text-white transition',
-								'hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+								'hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50',
+								'flex items-center justify-center gap-2'
 							)}
-							disabled={!newTasks[column.id]?.trim()}
+							disabled={!newTasks[column.id]?.trim() || taskCreationLoading[column.id]}
 						>
-							Add Task
+							{#if taskCreationLoading[column.id]}
+								<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24"
+									><circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+										fill="none"
+									/><path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12zm2 5.291A7.96 7.96 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938z"
+									/>
+								</svg>
+								{#if newTaskFiles[column.id]}
+									Uploading...
+								{:else}
+									Adding...
+								{/if}
+							{:else}
+								Add Task
+							{/if}
 						</button>
 					</form>
 				{/if}

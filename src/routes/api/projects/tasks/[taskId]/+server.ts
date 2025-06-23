@@ -1,5 +1,5 @@
 import { prisma } from '$lib/server/prisma.js';
-import { getPublicURL } from '$lib/server/minio.js';
+import { getPublicURL, deleteFromS3 } from '$lib/server/minio.js';
 import { realtimeBroadcaster } from '$lib/server/realtime';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -153,6 +153,9 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 				project: {
 					createdBy: locals.user.id
 				}
+			},
+			include: {
+				file: true // Include files to delete them from storage
 			}
 		});
 
@@ -160,10 +163,29 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 			return json({ error: true, message: 'Task not found or access denied' }, { status: 404 });
 		}
 
-		// Delete the task
-		await prisma.task.delete({
-			where: { id: taskId }
-		});
+		// Delete files from storage first
+		if (existingTask.file && existingTask.file.length > 0) {
+			for (const file of existingTask.file) {
+				try {
+					await deleteFromS3(file.path);
+				} catch (error) {
+					console.error(`Failed to delete file ${file.path} from storage:`, error);
+					// Continue with deletion even if file deletion fails
+				}
+			}
+		}
+
+		// Delete associated files from database, then the task
+		await prisma.$transaction([
+			prisma.file.deleteMany({
+				where: {
+					taskId: taskId
+				}
+			}),
+			prisma.task.delete({
+				where: { id: taskId }
+			})
+		]);
 
 		// Broadcast task deletion event to other users
 		realtimeBroadcaster.broadcastTaskDeleted(existingTask.projectId, taskId, locals.user.id);

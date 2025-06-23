@@ -25,7 +25,7 @@ enum KanbanColumnStatus {
 }
 
 model User {
-    id                String   @id @default(cuid())
+    id                String   @id @default(ulid())
     name              String
     email             String   @unique
     password          String
@@ -46,7 +46,7 @@ model User {
 }
 
 model Project {
-    id          String   @id @default(cuid())
+    id          String   @id @default(ulid())
     name        String
     description String?
     createdAt   DateTime @default(now())
@@ -60,7 +60,7 @@ model Project {
 }
 
 model Task {
-    id          String             @id @default(cuid())
+    id          String             @id @default(ulid())
     title       String
     description String
     priority    Int
@@ -76,7 +76,7 @@ model Task {
 }
 
 model File {
-    id         String   @id @default(cuid())
+    id         String   @id @default(ulid())
     name       String
     path       String
     uploadedAt DateTime @default(now())
@@ -90,7 +90,7 @@ model File {
 }
 
 model Message {
-    id        String   @id @default(cuid())
+    id        String   @id @default(ulid())
     text      String
     createdAt DateTime @default(now())
     senderId  String
@@ -109,7 +109,7 @@ model Session {
 }
 
 model ProjectMember {
-    id        String            @id @default(cuid())
+    id        String            @id @default(ulid())
     userId    String
     projectId String
     role      ProjectMemberRole

@@ -2,6 +2,7 @@
 	import { cn } from '$lib/utils/style';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 	import AddProjectModal from '$lib/components/modals/AddProjectModal.svelte';
 
 	const currentPath = $derived(page.url.pathname);
@@ -61,6 +62,9 @@
 			updatedAt: new Date().toISOString()
 		};
 		projects = [newProject, ...projects];
+		
+		// Invalidate all page data to refresh the dashboard
+		invalidateAll();
 	}
 
 	function getProjectUrl(projectId: string) {

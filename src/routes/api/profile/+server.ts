@@ -1,4 +1,4 @@
-import { getPublicURL, uploadToS3 } from '$lib/server/minio';
+import { getPublicURL, uploadToS3, deleteFromS3 } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
@@ -48,12 +48,30 @@ export const PUT = async ({ request, locals }) => {
 
 	let profilePictureUrl: string | undefined;
 
+	// If a new profile picture is being uploaded, handle the old one
 	if (profilePicture && profilePicture.size > 0) {
+		// Get current user to check for existing profile picture
+		const currentUser = await prisma.user.findUnique({
+			where: { id: locals.user.id },
+			select: { profilePictureUrl: true }
+		});
+
 		const fileName = `users/${locals.user.id}/pfp/image${path.extname(profilePicture.name)}`;
 		const fileBuffer = Buffer.from(await profilePicture.arrayBuffer());
 
-		await uploadToS3(fileName, fileBuffer, profilePicture.type);
+		// Delete old profile picture if it exists
+		if (currentUser?.profilePictureUrl) {
+			try {
+				// Extract the file path from the URL
+				const oldPath = `users/${locals.user.id}/pfp/image${path.extname(currentUser.profilePictureUrl)}`;
+				await deleteFromS3(oldPath);
+			} catch (error) {
+				console.error('Failed to delete old profile picture:', error);
+				// Continue with upload even if deletion fails
+			}
+		}
 
+		await uploadToS3(fileName, fileBuffer, profilePicture.type);
 		profilePictureUrl = getPublicURL(fileName);
 	}
 

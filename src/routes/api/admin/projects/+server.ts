@@ -1,4 +1,5 @@
 import { prisma } from '$lib/server/prisma';
+import { deleteFromS3 } from '$lib/server/minio';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
@@ -86,8 +87,34 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 			return json({ error: true, message: 'Project IDs are required' }, { status: 400 });
 		}
 
+		// Get all files for these projects before deletion
+		const projectsWithFiles = await prisma.project.findMany({
+			where: { id: { in: projectIds } },
+			include: {
+				files: true // Get all project files
+			}
+		});
+
+		// Delete files from storage first
+		for (const project of projectsWithFiles) {
+			if (project.files && project.files.length > 0) {
+				for (const file of project.files) {
+					try {
+						await deleteFromS3(file.path);
+					} catch (error) {
+						console.error(`Failed to delete file ${file.path} from storage:`, error);
+						// Continue with deletion even if file deletion fails
+					}
+				}
+			}
+		}
+
 		// Delete projects and all related data
 		await prisma.$transaction([
+			// Delete project members
+			prisma.projectMember.deleteMany({
+				where: { projectId: { in: projectIds } }
+			}),
 			// Delete files associated with projects
 			prisma.file.deleteMany({
 				where: { projectId: { in: projectIds } }

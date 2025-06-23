@@ -4,7 +4,8 @@ import {
 	PutObjectCommand,
 	HeadBucketCommand,
 	CreateBucketCommand,
-	GetObjectCommand
+	GetObjectCommand,
+	DeleteObjectCommand
 } from '@aws-sdk/client-s3';
 
 const config = {
@@ -103,6 +104,23 @@ export async function getObjectFromS3(fileName: string): Promise<Buffer> {
 	}
 
 	return Buffer.concat(chunks);
+}
+
+export async function deleteFromS3(fileName: string): Promise<void> {
+	// Remove the bucket prefix if it exists in the fileName
+	if (fileName.startsWith(`/${BUCKET_NAME}/`)) {
+		fileName = fileName.substring(BUCKET_NAME.length + 2);
+	}
+	if (fileName.startsWith('/')) {
+		fileName = fileName.substring(1);
+	}
+
+	const command = new DeleteObjectCommand({
+		Bucket: BUCKET_NAME,
+		Key: fileName
+	});
+
+	await s3Client.send(command);
 }
 
 export const getPublicURL = (objectName: string) => {

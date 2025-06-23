@@ -3,64 +3,83 @@
 	import { onMount } from 'svelte';
 	import { errorMessages } from '$lib/constants/errorMessages';
 
-	let name = '';
-	let email = '';
-	let password = '';
-	let confirmPassword = '';
-	let contactNumber = '';
-	let role = '';
-	let profilePictureUrl = '';
-	let errors: string[] = [];
-	let successMessage = '';
+	let name = $state('');
+	let email = $state('');
+	let password = $state('');
+	let confirmPassword = $state('');
+	let contactNumber = $state('');
+	let role = $state('');
+	let profilePictureUrl = $state('');
+	let errors = $state<string[]>([]);
+	let successMessage = $state('');
 	let newProfilePicture: File | null = null;
 	let fileInput: HTMLInputElement | null = null;
+	let isLoading = $state(false);
+	let isSubmitting = $state(false);
 
 	async function fetchUserProfile() {
-		const res = await fetch('/api/profile');
-		if (res.ok) {
-			const data = await res.json();
-			name = data.name;
-			email = data.email;
-			contactNumber = data.contactNumber;
-			role = data.role;
-			profilePictureUrl = data.profilePictureUrl; // Assuming the API returns the profile picture URL
-		} else {
+		isLoading = true;
+		try {
+			const res = await fetch('/api/profile');
+			if (res.ok) {
+				const data = await res.json();
+				name = data.name;
+				email = data.email;
+				contactNumber = data.contactNumber;
+				role = data.role;
+				profilePictureUrl = data.profilePictureUrl;
+			} else {
+				errors.push('Failed to load profile data.');
+			}
+		} catch (err) {
 			errors.push('Failed to load profile data.');
+		} finally {
+			isLoading = false;
 		}
 	}
 
-	async function handleUpdateProfile() {
+	async function handleUpdateProfile(event: Event) {
+		event.preventDefault();
 		errors = [];
 		successMessage = '';
+		isSubmitting = true;
 
-		if (password && password !== confirmPassword) {
-			errors.push(errorMessages.password_mismatch);
-			return;
-		}
+		try {
+			if (password && password !== confirmPassword) {
+				errors.push(errorMessages.password_mismatch);
+				return;
+			}
 
-		const formData = new FormData();
-		formData.append('name', name);
-		formData.append('email', email);
-		formData.append('contactNumber', contactNumber);
-		if (password) formData.append('password', password);
-		if (newProfilePicture) formData.append('profilePicture', newProfilePicture);
+			const formData = new FormData();
+			formData.append('name', name);
+			formData.append('email', email);
+			formData.append('contactNumber', contactNumber);
+			if (password) formData.append('password', password);
+			if (newProfilePicture) formData.append('profilePicture', newProfilePicture);
 
-		const res = await fetch('/api/profile', {
-			method: 'PUT',
-			body: formData
-		});
+			const res = await fetch('/api/profile', {
+				method: 'PUT',
+				body: formData
+			});
 
-		if (res.ok) {
-			successMessage = 'Profile updated successfully!';
-			await fetchUserProfile();
-			if (fileInput) fileInput.value = '';
-			newProfilePicture = null;
-			setTimeout(() => {
-				successMessage = '';
-			}, 1500);
-		} else {
-			const data = await res.json();
-			errors = data.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
+			if (res.ok) {
+				successMessage = 'Profile updated successfully!';
+				await fetchUserProfile();
+				if (fileInput) fileInput.value = '';
+				newProfilePicture = null;
+				password = '';
+				confirmPassword = '';
+				setTimeout(() => {
+					successMessage = '';
+				}, 3000);
+			} else {
+				const data = await res.json();
+				errors = data.message.map((code: string) => errorMessages[code] ?? 'Unknown error');
+			}
+		} catch (err) {
+			errors.push('Failed to update profile. Please try again.');
+		} finally {
+			isSubmitting = false;
 		}
 	}
 
@@ -118,7 +137,7 @@
 			<div class="mb-4 text-sm text-green-500">{successMessage}</div>
 		{/if}
 
-		<form on:submit|preventDefault={handleUpdateProfile} class="space-y-5">
+		<form onsubmit={handleUpdateProfile} class="space-y-5">
 			<div class="flex flex-col items-center">
 				<img
 					src={profilePictureUrl || `https://ui-avatars.com/api/?name=${name}`}
@@ -136,8 +155,9 @@
 					type="file"
 					accept=".jpg,.jpeg,.png,.gif,.webp"
 					bind:this={fileInput}
-					on:change={handleProfilePictureChange}
-					class="block w-full text-sm text-slate-500 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-white hover:file:bg-blue-700"
+					onchange={handleProfilePictureChange}
+					disabled={isSubmitting}
+					class="block w-full text-sm text-slate-500 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-white hover:file:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
 				/>
 			</div>
 
@@ -150,11 +170,13 @@
 					type="text"
 					bind:value={name}
 					required
+					disabled={isSubmitting}
 					class={cn(
 						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
-						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+						'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+						'disabled:cursor-not-allowed disabled:opacity-50'
 					)}
 				/>
 			</div>
@@ -171,11 +193,13 @@
 					type="email"
 					bind:value={email}
 					required
+					disabled={isSubmitting}
 					class={cn(
 						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
-						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+						'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+						'disabled:cursor-not-allowed disabled:opacity-50'
 					)}
 				/>
 			</div>
@@ -191,11 +215,13 @@
 					id="password"
 					type="password"
 					bind:value={password}
+					disabled={isSubmitting}
 					class={cn(
 						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
-						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+						'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+						'disabled:cursor-not-allowed disabled:opacity-50'
 					)}
 				/>
 			</div>
@@ -211,11 +237,13 @@
 					id="confirmPassword"
 					type="password"
 					bind:value={confirmPassword}
+					disabled={isSubmitting}
 					class={cn(
 						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
-						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+						'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+						'disabled:cursor-not-allowed disabled:opacity-50'
 					)}
 				/>
 			</div>
@@ -232,11 +260,13 @@
 					type="text"
 					bind:value={contactNumber}
 					required
+					disabled={isSubmitting}
 					class={cn(
 						'w-full rounded-md border px-4 py-2',
 						'bg-white dark:border-slate-600 dark:bg-slate-800',
 						'text-slate-900 placeholder:text-slate-400 dark:text-white',
-						'focus:ring-2 focus:ring-blue-500 focus:outline-none'
+						'focus:ring-2 focus:ring-blue-500 focus:outline-none',
+						'disabled:cursor-not-allowed disabled:opacity-50'
 					)}
 				/>
 			</div>
@@ -264,11 +294,38 @@
 				type="submit"
 				class={cn(
 					'w-full bg-blue-600 font-medium text-white hover:cursor-pointer hover:bg-blue-700',
-					'rounded-md py-2 shadow-sm transition duration-200'
+					'rounded-md py-2 shadow-sm transition duration-200',
+					'disabled:cursor-not-allowed disabled:opacity-50',
+					'flex items-center justify-center gap-2'
 				)}
+				disabled={isSubmitting}
 			>
-				Update Profile
+				{#if isSubmitting}
+					<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+						<circle
+							class="opacity-25"
+							cx="12"
+							cy="12"
+							r="10"
+							stroke="currentColor"
+							stroke-width="4"
+							fill="none"
+						/>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12zm2 5.291A7.96 7.96 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938z"
+						/>
+					</svg>
+					Updating...
+				{:else}
+					Update Profile
+				{/if}
 			</button>
 		</form>
+
+		{#if isLoading}
+			<div class="mt-4 text-center text-sm text-slate-500">Loading your profile data...</div>
+		{/if}
 	</div>
 </div>

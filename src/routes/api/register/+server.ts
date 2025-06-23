@@ -4,9 +4,9 @@ import { isFirstUserSetup } from '$lib/server/setup';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
 import { z } from 'zod';
-import { createId } from '@paralleldrive/cuid2';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
+import { randomUUID } from 'crypto';
 
 const Register = z.object({
 	name: z.string({ required_error: 'name_required' }),
@@ -29,9 +29,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		const isFirstUser = await isFirstUserSetup();
 
 		const hashedPassword = await Bun.password.hash(password);
-		const verificationToken = createId();
+		const verificationToken = randomUUID();
 
-		const user = await prisma.user.create({
+		await prisma.user.create({
 			data: {
 				name,
 				email,

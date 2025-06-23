@@ -1,9 +1,9 @@
 import { getPublicURL, uploadToS3 } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
 import { realtimeBroadcaster } from '$lib/server/realtime';
-import { createId } from '@paralleldrive/cuid2';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
+import { ulid } from 'ulid';
 
 // GET /api/projects/[id]/tasks - Get all tasks for a specific project
 export const GET: RequestHandler = async ({ params, locals, url }) => {
@@ -164,7 +164,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		// Handle file upload if present
 		let createdTask;
 		if (file && typeof File !== 'undefined' && file instanceof File && file.size > 0) {
-			const fileName = `projects/${projectId}/tasks/${createId()}/${file.name}`;
+			const fileName = `projects/${projectId}/tasks/${ulid()}/${file.name}`;
 			const buffer = Buffer.from(await file.arrayBuffer());
 			const s3Path = await uploadToS3(fileName, buffer, file.type);
 			createdTask = await prisma.task.create({

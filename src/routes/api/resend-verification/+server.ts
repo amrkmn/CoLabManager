@@ -1,9 +1,9 @@
 import { json } from '@sveltejs/kit';
 import { prisma } from '$lib/server/prisma';
 import { sendEmail, generateVerificationEmailHtml } from '$lib/server/email';
-import { createId } from '@paralleldrive/cuid2';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
+import { randomUUID } from 'crypto';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
@@ -26,7 +26,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		}
 
 		// Generate new verification token
-		const verificationToken = createId();
+		const verificationToken = randomUUID();
 
 		// Update user with new verification token
 		await prisma.user.update({
