@@ -91,7 +91,7 @@
 </script>
 
 <svelte:head>
-	<title>Complete Your Profile - PTA</title>
+	<title>Complete Your Profile - CoLab Manager</title>
 </svelte:head>
 
 <div

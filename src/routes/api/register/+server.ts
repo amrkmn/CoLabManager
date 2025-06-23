@@ -47,7 +47,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const verificationUrl = `${env.ORIGIN || 'http://localhost:5173'}/auth/verify?token=${verificationToken}`;
 		await sendEmail({
 			to: email,
-			subject: 'Verify your email - PTA',
+			subject: 'Verify your email - CoLab Manager',
 			html: generateVerificationEmailHtml(name, verificationUrl)
 		});
 

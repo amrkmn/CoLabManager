@@ -65,7 +65,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.isFirstUser ? 'Setup Admin Account' : 'Register'} - PTA</title>
+	<title>{data.isFirstUser ? 'Setup Admin Account' : 'Register'} - CoLab Manager</title>
 </svelte:head>
 
 <div
@@ -105,7 +105,7 @@
 						class="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20"
 					>
 						<p class="text-sm text-blue-800 dark:text-blue-200">
-							<strong>🚀 Welcome to CoLab Manager!</strong><br />
+							<strong class="text-blue-800 dark:text-blue-200">🚀 Welcome to CoLab Manager!</strong><br />
 							You're the first user, so you've been granted administrator privileges. After verifying
 							your email, you'll have full access to manage the system.
 						</p>

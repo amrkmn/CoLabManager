@@ -97,7 +97,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			const inviteUrl = `${env.ORIGIN || 'http://localhost:5173'}/projects/${projectId}`;
 			await sendEmail({
 				to: email,
-				subject: `You've been added to ${project.name} - PTA`,
+				subject: `You've been added to ${project.name} - CoLab Manager`,
 				html: generateProjectInviteEmailHtml(user.name, project.name, inviteUrl, role || 'Member')
 			});
 
@@ -138,7 +138,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			// Send invitation email
 			await sendEmail({
 				to: email,
-				subject: `You've been invited to join ${project.name} - PTA`,
+				subject: `You've been invited to join ${project.name} - CoLab Manager`,
 				html: generateProjectInviteEmailHtml(user.name, project.name, inviteUrl, role || 'Member')
 			});
 
