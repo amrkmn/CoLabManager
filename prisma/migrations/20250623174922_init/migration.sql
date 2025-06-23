@@ -15,7 +15,7 @@ CREATE TABLE "User" (
     "password" TEXT NOT NULL,
     "contactNumber" TEXT NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'User',
-    "profilePictureUrl" TEXT,
+    "avatar" TEXT,
     "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "verificationToken" TEXT,

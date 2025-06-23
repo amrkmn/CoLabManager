@@ -18,7 +18,7 @@
 		user?: {
 			id: string;
 			name: string;
-			profilePictureUrl?: string;
+			avatar?: string;
 		};
 		files?: Array<{
 			id: string;
@@ -573,9 +573,9 @@
 							{#if task.user}
 								<div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
 									<div class="flex items-center gap-1">
-										{#if task.user.profilePictureUrl}
+										{#if task.user.avatar}
 											<img
-												src={task.user.profilePictureUrl}
+												src={task.user.avatar}
 												alt={task.user.name}
 												class="h-4 w-4 rounded-full object-cover"
 											/>

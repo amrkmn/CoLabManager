@@ -6,7 +6,7 @@
 		name: string;
 		email: string;
 		role: string;
-		profilePictureUrl?: string;
+		avatar?: string;
 	}
 
 	interface Props {
@@ -20,7 +20,7 @@
 
 	function getAvatarUrl(member: Member) {
 		return (
-			member.profilePictureUrl ||
+			member.avatar ||
 			`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}`
 		);
 	}

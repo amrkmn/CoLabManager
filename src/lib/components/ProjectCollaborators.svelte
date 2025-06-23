@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import InviteCollaboratorModal from './modals/InviteCollaboratorModal.svelte';
 	import ProjectMembersModal from './modals/ProjectMembersModal.svelte';
+	import type { User } from '@prisma/client';
 
 	const projectId = $derived(page.params.id);
 	let members = $state<any[]>([]);
@@ -97,11 +98,8 @@
 		}
 	}
 
-	function getAvatarUrl(member: any) {
-		return (
-			member.profilePictureUrl ||
-			`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}`
-		);
+	function getAvatarUrl(member: Omit<User, 'password'>) {
+		return member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}`;
 	}
 </script>
 

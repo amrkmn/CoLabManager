@@ -31,7 +31,7 @@ model User {
     password          String
     contactNumber     String
     role              Role     @default(User)
-    profilePictureUrl String?
+    avatar            String?
     createAt          DateTime @default(now())
     emailVerified     Boolean  @default(false)
     verificationToken String?

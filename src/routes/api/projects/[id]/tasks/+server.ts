@@ -54,7 +54,7 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 					select: {
 						id: true,
 						name: true,
-						profilePictureUrl: true
+						avatar: true
 					}
 				}
 			}
@@ -71,7 +71,7 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 			user: {
 				id: task.user.id,
 				name: task.user.name,
-				profilePictureUrl: task.user.profilePictureUrl
+				avatar: task.user.avatar
 			},
 			files: task.file.map((file) => ({
 				id: file.id,
@@ -190,7 +190,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 						select: {
 							id: true,
 							name: true,
-							profilePictureUrl: true
+							avatar: true
 						}
 					}
 				}
@@ -211,7 +211,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 						select: {
 							id: true,
 							name: true,
-							profilePictureUrl: true
+							avatar: true
 						}
 					}
 				}
@@ -229,7 +229,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			user: {
 				id: createdTask.user.id,
 				name: createdTask.user.name,
-				profilePictureUrl: createdTask.user.profilePictureUrl
+				avatar: createdTask.user.avatar
 			},
 			files: createdTask.file.map((file) => {
 				return {

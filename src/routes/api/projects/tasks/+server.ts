@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 					select: {
 						id: true,
 						name: true,
-						profilePictureUrl: true
+						avatar: true
 					}
 				},
 				file: true
@@ -50,7 +50,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 				user: {
 					id: task.user.id,
 					name: task.user.name,
-					profilePictureUrl: task.user.profilePictureUrl
+					avatar: task.user.avatar
 				},
 				files: task.file.map((file) => ({
 					id: file.id,

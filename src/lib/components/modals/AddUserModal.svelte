@@ -5,8 +5,8 @@
 		email: string;
 		contactNumber: string;
 		role: 'User' | 'Admin';
-		createAt: string;
-		profilePictureUrl?: string;
+		createdAt: string;
+		avatar?: string;
 	}
 
 	interface UserForm {

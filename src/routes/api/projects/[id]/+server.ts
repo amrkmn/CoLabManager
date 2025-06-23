@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 							select: {
 								id: true,
 								name: true,
-								profilePictureUrl: true
+								avatar: true
 							}
 						}
 					}
@@ -68,7 +68,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 								id: true,
 								name: true,
 								email: true,
-								profilePictureUrl: true
+								avatar: true
 							}
 						}
 					}

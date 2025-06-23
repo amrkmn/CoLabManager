@@ -20,7 +20,7 @@ export const GET = async ({ locals }) => {
 
 	const user = await prisma.user.findUnique({
 		where: { id: locals.user.id },
-		select: { name: true, email: true, contactNumber: true, role: true, profilePictureUrl: true }
+		select: { name: true, email: true, contactNumber: true, role: true, avatar: true }
 	});
 
 	return json(user);
@@ -46,24 +46,24 @@ export const PUT = async ({ request, locals }) => {
 		profilePicture
 	});
 
-	let profilePictureUrl: string | undefined;
+	let avatar: string | undefined;
 
 	// If a new profile picture is being uploaded, handle the old one
 	if (profilePicture && profilePicture.size > 0) {
 		// Get current user to check for existing profile picture
 		const currentUser = await prisma.user.findUnique({
 			where: { id: locals.user.id },
-			select: { profilePictureUrl: true }
+			select: { avatar: true }
 		});
 
-		const fileName = `users/${locals.user.id}/pfp/image${path.extname(profilePicture.name)}`;
+		const fileName = `avatars/${locals.user.id}${path.extname(profilePicture.name)}`;
 		const fileBuffer = Buffer.from(await profilePicture.arrayBuffer());
 
 		// Delete old profile picture if it exists
-		if (currentUser?.profilePictureUrl) {
+		if (currentUser?.avatar) {
 			try {
 				// Extract the file path from the URL
-				const oldPath = `users/${locals.user.id}/pfp/image${path.extname(currentUser.profilePictureUrl)}`;
+				const oldPath = `avatars/${locals.user.id}${path.extname(currentUser.avatar)}`;
 				await deleteFromS3(oldPath);
 			} catch (error) {
 				console.error('Failed to delete old profile picture:', error);
@@ -72,7 +72,7 @@ export const PUT = async ({ request, locals }) => {
 		}
 
 		await uploadToS3(fileName, fileBuffer, profilePicture.type);
-		profilePictureUrl = getPublicURL(fileName);
+		avatar = getPublicURL(fileName);
 	}
 
 	await prisma.user.update({
@@ -82,7 +82,7 @@ export const PUT = async ({ request, locals }) => {
 			email: parsed.email,
 			contactNumber: parsed.contactNumber,
 			...(parsed.password && { password: await Bun.password.hash(parsed.password) }),
-			...(profilePictureUrl && { profilePictureUrl })
+			...(avatar && { avatar })
 		}
 	});
 

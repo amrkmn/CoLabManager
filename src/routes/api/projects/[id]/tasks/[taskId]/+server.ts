@@ -96,7 +96,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 					select: {
 						id: true,
 						name: true,
-						profilePictureUrl: true
+						avatar: true
 					}
 				}
 			}
@@ -114,7 +114,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 			user: {
 				id: updatedTask.user.id,
 				name: updatedTask.user.name,
-				profilePictureUrl: updatedTask.user.profilePictureUrl
+				avatar: updatedTask.user.avatar
 			},
 			files: updatedTask.file.map((file) => ({
 				id: file.id,

@@ -38,7 +38,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 					contactNumber: true,
 					role: true,
 					createAt: true,
-					profilePictureUrl: true,
+					avatar: true,
 					_count: {
 						select: {
 							projects: true,
@@ -119,7 +119,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				contactNumber: true,
 				role: true,
 				createAt: true,
-				profilePictureUrl: true
+				avatar: true
 			}
 		});
 

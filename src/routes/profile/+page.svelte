@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { errorMessages } from '$lib/constants/errorMessages';
 	import { cn } from '$lib/utils/style';
 	import { onMount } from 'svelte';
-	import { errorMessages } from '$lib/constants/errorMessages';
+
+	let { data } = $props();
 
 	let name = $state('');
 	let email = $state('');
@@ -9,7 +11,7 @@
 	let confirmPassword = $state('');
 	let contactNumber = $state('');
 	let role = $state('');
-	let profilePictureUrl = $state('');
+	let avatar = $state('');
 	let errors = $state<string[]>([]);
 	let successMessage = $state('');
 	let newProfilePicture: File | null = null;
@@ -22,12 +24,12 @@
 		try {
 			const res = await fetch('/api/profile');
 			if (res.ok) {
-				const data = await res.json();
-				name = data.name;
-				email = data.email;
-				contactNumber = data.contactNumber;
-				role = data.role;
-				profilePictureUrl = data.profilePictureUrl;
+				const profile = await res.json();
+				name = profile.name;
+				email = profile.email;
+				contactNumber = profile.contactNumber;
+				role = profile.role;
+				avatar = profile.avatar;
 			} else {
 				errors.push('Failed to load profile data.');
 			}
@@ -140,7 +142,7 @@
 		<form onsubmit={handleUpdateProfile} class="space-y-5">
 			<div class="flex flex-col items-center">
 				<img
-					src={profilePictureUrl || `https://ui-avatars.com/api/?name=${name}`}
+					src={avatar || `https://ui-avatars.com/api/?name=${name}`}
 					alt="Profile"
 					class="mb-4 h-24 w-24 rounded-full object-cover"
 				/>

@@ -115,7 +115,7 @@
 				aria-label="User menu"
 			>
 				<img
-					src={user.profilePictureUrl || `https://ui-avatars.com/api/?name=${user.name}`}
+					src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`}
 					alt="User Avatar"
 					class="h-full w-full object-cover"
 				/>
@@ -164,7 +164,7 @@
 				class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-slate-300 dark:border-slate-600"
 			>
 				<img
-					src={user.profilePictureUrl || `https://ui-avatars.com/api/?name=${user.name}`}
+					src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`}
 					alt="User Avatar"
 					class="h-full w-full object-cover"
 				/>
@@ -216,7 +216,7 @@
 					class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-300 dark:border-slate-600"
 				>
 					<img
-						src={user.profilePictureUrl || `https://ui-avatars.com/api/?name=${user.name}`}
+						src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`}
 						alt="User Avatar"
 						class="h-full w-full object-cover"
 					/>

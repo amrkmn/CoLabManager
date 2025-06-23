@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 		}
 		const members = await prisma.projectMember.findMany({
 			where: { projectId },
-			include: { user: { select: { id: true, name: true, email: true, profilePictureUrl: true } } }
+			include: { user: { select: { id: true, name: true, email: true, avatar: true } } }
 		});
 		return json({ success: true, members });
 	} catch (err) {

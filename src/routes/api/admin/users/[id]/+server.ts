@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 				contactNumber: true,
 				role: true,
 				createAt: true,
-				profilePictureUrl: true,
+				avatar: true,
 				_count: {
 					select: {
 						projects: true,
@@ -113,7 +113,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 				contactNumber: true,
 				role: true,
 				createAt: true,
-				profilePictureUrl: true
+				avatar: true
 			}
 		});
 
@@ -158,10 +158,10 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
 		}
 
 		// Delete user's profile picture from S3/MinIO if it exists
-		if (existingUser.profilePictureUrl) {
+		if (existingUser.avatar) {
 			try {
 				// Extract the file path from the URL pattern
-				const profilePicturePath = `users/${userId}/pfp/image${path.extname(existingUser.profilePictureUrl)}`;
+				const profilePicturePath = `avatars/${userId}${path.extname(existingUser.avatar)}`;
 				await deleteFromS3(profilePicturePath);
 			} catch (error) {
 				console.error(`Failed to delete profile picture for user ${userId}:`, error);

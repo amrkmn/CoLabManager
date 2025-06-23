@@ -13,8 +13,8 @@
 		email: string;
 		contactNumber: string;
 		role: 'User' | 'Admin';
-		createAt: string;
-		profilePictureUrl?: string;
+		createdAt: string;
+		avatar?: string;
 		_count?: {
 			projects: number;
 			tasks: number;
@@ -598,10 +598,10 @@
 											<!-- User Info: Profile Image + Name/Email -->
 											<td class="px-6 py-4 align-middle whitespace-nowrap">
 												<div class="flex items-center space-x-3">
-													{#if user.profilePictureUrl}
+													{#if user.avatar}
 														<img
 															class="h-10 w-10 rounded-full object-cover"
-															src={user.profilePictureUrl}
+															src={user.avatar}
 															alt={user.name}
 														/>
 													{:else}
@@ -648,7 +648,7 @@
 											<td
 												class="px-6 py-4 align-middle text-sm whitespace-nowrap text-slate-500 dark:text-slate-400"
 											>
-												{formatDateTime(user.createAt)}
+												{formatDateTime(user.createdAt)}
 											</td>
 											<!-- Activity -->
 											<td
