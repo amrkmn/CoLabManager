@@ -10,6 +10,7 @@
 	let { data } = $props();
 
 	const projectId = $derived(page.params.id);
+	let mobileNavOpen = $state(false);
 	interface Project {
 		id: string;
 		name: string;
@@ -109,6 +110,14 @@
 		showDeleteModal = false;
 		deleteError = '';
 	}
+
+	function toggleMobileNav() {
+		mobileNavOpen = !mobileNavOpen;
+	}
+
+	function closeMobileNav() {
+		mobileNavOpen = false;
+	}
 </script>
 
 <svelte:head>
@@ -123,10 +132,10 @@
 >
 	<!-- Header -->
 	<Header user={data.user} />
-	<div class="flex min-h-0 flex-1">
+	<div class="relative flex min-h-0 flex-1">
 		<!-- Side Navigation -->
-		<SideNav />
-		<main class="flex flex-1 flex-col text-slate-800 dark:text-white">
+		<SideNav mobileOpen={mobileNavOpen} onMobileClose={closeMobileNav} />
+		<main class="flex flex-1 flex-col overflow-auto text-slate-800 dark:text-white">
 			{#if isLoading}
 				<div class="flex h-full items-center justify-center">
 					<div class="text-center">
@@ -168,25 +177,51 @@
 					</div>
 				</div>
 			{:else}
+				<!-- Mobile Nav Toggle Button -->
+				<div
+					class="border-b border-slate-200 bg-white/50 p-3 sm:hidden dark:border-slate-700 dark:bg-slate-800/50"
+				>
+					<button
+						onclick={toggleMobileNav}
+						class="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+					>
+						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M4 6h16M4 12h16M4 18h16"
+							></path>
+						</svg>
+						<span>Projects</span>
+					</button>
+				</div>
+
 				<!-- Project Header -->
 				<div
-					class="border-b border-slate-200 bg-white/50 p-4 dark:border-slate-700 dark:bg-slate-800/50"
+					class="border-b border-slate-200 bg-white/50 p-3 sm:p-4 dark:border-slate-700 dark:bg-slate-800/50"
 				>
-					<h1 class="text-xl font-bold text-slate-900 dark:text-slate-100">{project.name}</h1>
+					<h1 class="text-lg leading-tight font-bold text-slate-900 sm:text-xl dark:text-slate-100">
+						{project.name}
+					</h1>
 					{#if project.description}
 						<p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{project.description}</p>
 					{/if}
-					<div class="mt-3 flex items-center justify-between">
-						<div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+					<div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div
+							class="flex flex-col gap-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:gap-4 sm:text-sm dark:text-slate-400"
+						>
 							<span title={new Date(project.createdAt).toLocaleString()}>
 								Created: {formatDateTime(project.createdAt)}
 							</span>
-							<span>•</span>
+							<span class="hidden sm:inline">•</span>
 							<span>{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</span>
 						</div>
-						<div class="flex items-center gap-3">
+						<div class="flex items-center gap-2 sm:gap-3">
 							<!-- Collaborators/Invite UI -->
-							<ProjectCollaborators />
+							<div class="flex-1 sm:flex-none">
+								<ProjectCollaborators />
+							</div>
 
 							<!-- Delete button (only for Admins) -->
 							{#if project.currentUserRole === 'Admin'}
@@ -225,7 +260,14 @@
 
 <!-- Delete Project Modal -->
 {#if showDeleteModal}
-	<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm"
+		role="dialog"
+		aria-modal="true"
+		onclick={(e) => e.target === e.currentTarget && closeDeleteModal()}
+		onkeydown={(e) => e.key === 'Escape' && closeDeleteModal()}
+		tabindex="-1"
+	>
 		<div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-slate-800">
 			<div class="mb-4 flex items-center justify-between">
 				<h3 class="text-lg font-semibold text-red-600 dark:text-red-400">Delete Project</h3>

@@ -27,7 +27,14 @@
 </script>
 
 {#if show}
-	<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm"
+		role="dialog"
+		aria-modal="true"
+		onclick={(e) => e.target === e.currentTarget && onClose()}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
+		tabindex="-1"
+	>
 		<div class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-slate-800">
 			<div class="mb-4 flex items-center justify-between">
 				<h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">

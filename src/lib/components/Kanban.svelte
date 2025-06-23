@@ -480,21 +480,28 @@
 		</div>
 	</div>
 {:else}
-	<div class={cn('flex w-full gap-6 overflow-x-auto py-4')}>
+	<div
+		class={cn(
+			'flex w-full gap-3 overflow-x-auto py-4 sm:gap-6',
+			'scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 dark:scrollbar-thumb-slate-600 dark:scrollbar-track-slate-800 snap-x snap-mandatory sm:snap-none'
+		)}
+	>
 		{#each columns as column}
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
 				class={cn(
-					'flex w-80 min-w-[280px] flex-col rounded-lg bg-white p-4 shadow-md dark:bg-slate-900'
+					'flex flex-col rounded-lg bg-white shadow-md dark:bg-slate-900',
+					'w-72 min-w-[280px] flex-shrink-0 p-3 sm:w-80 sm:min-w-[320px] sm:p-4',
+					'snap-center sm:snap-align-none'
 				)}
 				{...!readOnly && {
 					ondragover: handleDragOver,
 					ondrop: (e) => handleDrop(e, column.id)
 				}}
 			>
-				<h3 class="mb-3 text-lg font-semibold text-slate-700 dark:text-slate-200">
+				<h3 class="mb-3 text-base font-semibold text-slate-700 sm:text-lg dark:text-slate-200">
 					{column.name}
-					<span class="ml-2 text-sm font-normal text-slate-500 dark:text-slate-400">
+					<span class="ml-2 text-xs font-normal text-slate-500 sm:text-sm dark:text-slate-400">
 						({column.tasks.length})
 					</span>
 				</h3>
@@ -513,8 +520,8 @@
 								ondragstart: (e) => handleDragStart(e, task)
 							}}
 						>
-							<div class="flex items-start justify-between">
-								<span class="font-medium">{task.title}</span>
+							<div class="flex items-start justify-between gap-2">
+								<span class="text-sm leading-tight font-medium sm:text-base">{task.title}</span>
 								{#if task.priority}
 									{#if !readOnly && editingPriority === task.id}
 										<select
@@ -525,7 +532,7 @@
 													(e.target as HTMLSelectElement).value as 'low' | 'medium' | 'high'
 												)}
 											onblur={() => (editingPriority = null)}
-											class="priority-editor rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+											class="priority-editor flex-shrink-0 rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
 										>
 											<option value="low" class="dark:bg-slate-800 dark:text-white">🟢 Low</option>
 											<option value="medium" class="dark:bg-slate-800 dark:text-white"
@@ -543,7 +550,7 @@
 												}
 											}}
 											class={cn(
-												'rounded-full px-2 py-1 text-xs transition-colors',
+												'flex-shrink-0 rounded-full px-2 py-1 text-xs transition-colors',
 												readOnly ? '' : 'cursor-pointer hover:opacity-80',
 												task.priority === 'high'
 													? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
@@ -555,7 +562,7 @@
 											disabled={readOnly}
 										>
 											{task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}
-											{task.priority}
+											<span class="ml-1 hidden sm:inline">{task.priority}</span>
 										</button>
 									{/if}
 								{/if}
@@ -600,7 +607,7 @@
 										>
 											<svg
 												xmlns="http://www.w3.org/2000/svg"
-												class="h-3 w-3"
+												class="h-3 w-3 flex-shrink-0"
 												fill="none"
 												viewBox="0 0 24 24"
 												stroke="currentColor"
@@ -612,7 +619,7 @@
 													d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
 												/>
 											</svg>
-											<span class="max-w-[80px] truncate">{file.name}</span>
+											<span class="max-w-[60px] truncate sm:max-w-[80px]">{file.name}</span>
 										</a>
 									{/each}
 								</div>
@@ -667,11 +674,11 @@
 								'disabled:cursor-not-allowed disabled:opacity-50'
 							)}
 						/>
-						<div class="flex items-center gap-2">
+						<div class="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
 							<select
 								bind:value={newTaskPriorities[column.id]}
 								disabled={taskCreationLoading[column.id]}
-								class="rounded border bg-slate-100 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+								class="flex-shrink-0 rounded border bg-slate-100 px-2 py-1 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white"
 							>
 								<option value="low">🟢 Low</option>
 								<option value="medium">🟡 Medium</option>
@@ -679,13 +686,14 @@
 							</select>
 							<label
 								class={cn(
-									'flex cursor-pointer items-center gap-1 rounded border border-slate-300 bg-slate-100 px-2 py-1 transition hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700',
-									taskCreationLoading[column.id] && 'cursor-not-allowed opacity-50'
+									'flex cursor-pointer items-center justify-center gap-1 rounded border border-slate-300 bg-slate-100 px-2 py-1 transition hover:bg-slate-200 sm:justify-start dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700',
+									taskCreationLoading[column.id] && 'cursor-not-allowed opacity-50',
+									'flex-shrink-0'
 								)}
 							>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
-									class="h-5 w-5 text-blue-600"
+									class="h-4 w-4 text-blue-600"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -696,7 +704,7 @@
 										d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
 									/></svg
 								>
-								<span class="hidden text-xs sm:inline">File</span>
+								<span class="text-xs">File</span>
 								<input
 									type="file"
 									accept="*"
@@ -706,18 +714,18 @@
 									class="hidden"
 								/>
 							</label>
-							{#if newTaskFiles[column.id]}
-								<span class="max-w-[100px] truncate text-xs text-slate-500 dark:text-slate-400"
-									>{newTaskFiles[column.id]?.name}</span
-								>
-							{/if}
 						</div>
+						{#if newTaskFiles[column.id]}
+							<span class="truncate px-1 text-xs text-slate-500 dark:text-slate-400">
+								📎 {newTaskFiles[column.id]?.name}
+							</span>
+						{/if}
 						<button
 							type="submit"
 							class={cn(
-								'rounded bg-blue-600 py-1 text-sm text-white transition',
+								'rounded bg-blue-600 py-2 text-sm text-white transition',
 								'hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50',
-								'flex items-center justify-center gap-2'
+								'flex w-full items-center justify-center gap-2'
 							)}
 							disabled={!newTasks[column.id]?.trim() || taskCreationLoading[column.id]}
 						>

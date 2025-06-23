@@ -5,6 +5,14 @@
 	import { invalidateAll } from '$app/navigation';
 	import AddProjectModal from '$lib/components/modals/AddProjectModal.svelte';
 
+	let {
+		mobileOpen = false,
+		onMobileClose = () => {}
+	}: {
+		mobileOpen?: boolean;
+		onMobileClose?: () => void;
+	} = $props();
+
 	const currentPath = $derived(page.url.pathname);
 
 	interface Project {
@@ -62,7 +70,7 @@
 			updatedAt: new Date().toISOString()
 		};
 		projects = [newProject, ...projects];
-		
+
 		// Invalidate all page data to refresh the dashboard
 		invalidateAll();
 	}
@@ -70,12 +78,38 @@
 	function getProjectUrl(projectId: string) {
 		return `/projects/${projectId}`;
 	}
+
+	function handleLinkClick() {
+		// Close mobile menu when navigating
+		onMobileClose();
+	}
 </script>
+
+<!-- Mobile Sidebar Backdrop -->
+{#if mobileOpen}
+	<div
+		class="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm sm:hidden"
+		role="button"
+		tabindex="0"
+		onclick={onMobileClose}
+		onkeydown={(e) => (e.key === 'Enter' || e.key === ' ' ? onMobileClose() : null)}
+	></div>
+{/if}
 
 <nav
 	class={cn(
-		'flex h-full w-56 flex-col border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900',
-		'not-prose px-3 py-2 shadow-md'
+		'flex h-full flex-col border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900',
+		'not-prose px-3 py-2 shadow-md transition-transform duration-300 ease-in-out',
+		// Desktop: always visible, static position, fixed width
+		'sm:relative sm:w-56 sm:translate-x-0',
+		// Mobile: fixed overlay, slides in from left, starts below header
+		'fixed left-0 z-50 w-64',
+		// Mobile positioning - below header
+		'top-16 bottom-0',
+		// Transform based on mobile state - always apply transform on mobile
+		mobileOpen ? 'translate-x-0' : '-translate-x-full',
+		// On desktop, always visible (overrides mobile transform and positioning)
+		'sm:translate-x-0 sm:top-0'
 	)}
 >
 	<!-- Projects Section -->
@@ -113,6 +147,7 @@
 						<li>
 							<a
 								href={getProjectUrl(project.id)}
+								onclick={handleLinkClick}
 								class={cn(
 									'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 transition dark:text-slate-200',
 									'hover:bg-blue-100 dark:hover:bg-slate-800',
@@ -138,6 +173,7 @@
 			<li>
 				<a
 					href="/dashboard"
+					onclick={handleLinkClick}
 					class={cn(
 						'flex w-full items-center gap-1 rounded-md px-3 py-1.5 text-slate-700 transition dark:text-slate-200',
 						'hover:bg-blue-100 dark:hover:bg-slate-800',
@@ -161,9 +197,12 @@
 />
 
 <style>
-	nav {
-		height: calc(100vh - 80px); /* Header height is h-20 = 80px */
-		position: sticky;
-		top: 0;
+	/* Desktop styles */
+	@media (min-width: 640px) {
+		nav {
+			height: calc(100vh - 80px); /* Desktop header height is h-20 = 80px */
+			position: sticky;
+			top: 0;
+		}
 	}
 </style>

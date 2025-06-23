@@ -9,6 +9,7 @@
 	let { data } = $props();
 
 	let showDeleteSuccess = $state(false);
+	let mobileNavOpen = $state(false);
 
 	onMount(() => {
 		// Check if we're coming from a deleted project
@@ -25,6 +26,14 @@
 			}, 5000);
 		}
 	});
+
+	function toggleMobileNav() {
+		mobileNavOpen = !mobileNavOpen;
+	}
+
+	function closeMobileNav() {
+		mobileNavOpen = false;
+	}
 </script>
 
 <div
@@ -35,10 +44,28 @@
 >
 	<!-- Header -->
 	<Header user={data.user} />
-	<div class="flex min-h-0 flex-1">
+	<div class="relative flex min-h-0 flex-1">
 		<!-- Side Navigation -->
-		<SideNav />
-		<main class="flex-1 p-6 text-slate-800 dark:text-white">
+		<SideNav mobileOpen={mobileNavOpen} onMobileClose={closeMobileNav} />
+
+		<main class="flex-1 overflow-auto p-3 text-slate-800 sm:p-6 dark:text-white">
+			<!-- Mobile Nav Toggle Button -->
+			<div class="mb-4 sm:hidden">
+				<button
+					onclick={toggleMobileNav}
+					class="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+				>
+					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 6h16M4 12h16M4 18h16"
+						></path>
+					</svg>
+					<span>Projects</span>
+				</button>
+			</div>
 			<!-- Success message for deleted project -->
 			{#if showDeleteSuccess}
 				<div
