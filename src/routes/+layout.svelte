@@ -4,6 +4,6 @@
 	let { children } = $props();
 </script>
 
-<div class="prose max-w-none">
+<div class="max-w-none">
 	{@render children()}
 </div>

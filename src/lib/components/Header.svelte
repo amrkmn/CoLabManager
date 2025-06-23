@@ -159,9 +159,9 @@
 		</div>
 
 		<!-- Mobile User Avatar (Just display, menu is in mobile sidebar) -->
-		<div class="sm:hidden">
+		<div class="flex items-center sm:hidden">
 			<div
-				class="h-8 w-8 overflow-hidden rounded-full border border-slate-300 dark:border-slate-600"
+				class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-slate-300 dark:border-slate-600"
 			>
 				<img
 					src={user.profilePictureUrl || `https://ui-avatars.com/api/?name=${user.name}`}
@@ -213,7 +213,7 @@
 		<div class="border-b border-slate-200 p-4 dark:border-slate-700">
 			<div class="flex items-center gap-3">
 				<div
-					class="h-10 w-10 overflow-hidden rounded-full border border-slate-300 dark:border-slate-600"
+					class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-300 dark:border-slate-600"
 				>
 					<img
 						src={user.profilePictureUrl || `https://ui-avatars.com/api/?name=${user.name}`}

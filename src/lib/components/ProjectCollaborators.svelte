@@ -108,7 +108,7 @@
 <!-- Minimal collaborators display -->
 <div class="flex items-center gap-3">
 	<!-- Collaborator avatars -->
-	<div class="flex -space-x-2">
+	<div class="flex">
 		{#if isLoadingMembers}
 			<div class="h-8 w-8 animate-pulse rounded-full bg-slate-300"></div>
 		{:else if members.length > 0}

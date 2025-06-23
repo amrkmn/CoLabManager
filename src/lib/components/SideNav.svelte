@@ -99,7 +99,7 @@
 <nav
 	class={cn(
 		'flex h-full flex-col border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900',
-		'not-prose px-3 py-2 shadow-md transition-transform duration-300 ease-in-out',
+		'px-3 py-2 shadow-md transition-transform duration-300 ease-in-out',
 		// Desktop: always visible, static position, fixed width
 		'sm:relative sm:w-56 sm:translate-x-0',
 		// Mobile: fixed overlay, slides in from left, starts below header

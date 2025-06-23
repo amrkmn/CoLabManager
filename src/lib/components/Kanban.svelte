@@ -506,7 +506,7 @@
 					</span>
 				</h3>
 
-				<ul class="not-prose mb-4 flex-1 space-y-2">
+				<ul class="mb-4 flex-1 space-y-2">
 					{#each column.tasks as task (task.id)}
 						<li
 							class={cn(
