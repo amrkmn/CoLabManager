@@ -108,7 +108,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 			});
 		} else {
 			// User doesn't exist, create invite token
-			const inviteToken = ulid();
+			const inviteToken = randomUUID();
 			const inviteUrl = `${env.ORIGIN || 'http://localhost:5173'}/auth/invite?token=${inviteToken}`;
 
 			// Store invite details in a temporary way (you might want to create a separate table for this)
