@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import { realtimeBroadcaster } from '$lib/server/realtime';
 import { prisma } from '$lib/server/prisma';
-import { ulid } from 'ulid';
+import { randomUUID } from 'crypto';
 
 export const GET: RequestHandler = async ({ params, locals, request }) => {
 	const user = locals.user;
@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ params, locals, request }) => {
 	// Create SSE stream
 	const stream = new ReadableStream({
 		start(controller) {
-			const connectionId = ulid();
+			const connectionId = randomUUID();
 
 			// Add connection to broadcaster
 			realtimeBroadcaster.addConnection({
