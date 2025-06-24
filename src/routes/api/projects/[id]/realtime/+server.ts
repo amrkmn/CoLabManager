@@ -79,6 +79,7 @@ export const GET: RequestHandler = async ({ params, locals, request }) => {
 
 	return new Response(stream, {
 		headers: {
+			'X-Accel-Buffering': 'no',
 			'Content-Type': 'text/event-stream',
 			'Cache-Control': 'no-cache',
 			Connection: 'keep-alive',
