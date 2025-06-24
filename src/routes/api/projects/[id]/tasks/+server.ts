@@ -32,8 +32,6 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 		return json({ error: true, message: 'Project not found or access denied' }, { status: 404 });
 	}
 
-	const project = projectMembership.project;
-
 	try {
 		const status = url.searchParams.get('status');
 		const whereClause: any = {
