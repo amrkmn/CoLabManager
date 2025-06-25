@@ -35,6 +35,9 @@ RUN corepack enable && corepack prepare yarn@4.9.2 --activate
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn ./.yarn
 
+# Copy Prisma schema (needed for generating client)
+COPY prisma ./prisma/
+
 # Install production dependencies only
 RUN yarn workspaces focus --production && yarn cache clean
 
@@ -62,8 +65,6 @@ COPY --from=builder /app/prisma ./prisma/
 
 # Copy production dependencies and generated Prisma client only
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 
 # Change ownership to non-root user
 RUN chown -R nextjs:nodejs /app
