@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/style';
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
 
 	let email = '';
 	let password = '';
