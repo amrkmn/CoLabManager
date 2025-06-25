@@ -77,14 +77,15 @@ export const GET: RequestHandler = async ({ params, locals, request }) => {
 		}
 	});
 
-	return new Response(stream, {
-		headers: {
-			'X-Accel-Buffering': 'no',
-			'Content-Type': 'text/event-stream',
-			'Cache-Control': 'no-cache',
-			Connection: 'keep-alive',
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Headers': 'Cache-Control'
-		}
-	});
+	// Set headers for SSE
+	const headers = new Headers();
+	headers.set('Content-Type', 'text/event-stream');
+	headers.set('Cache-Control', 'no-cache');
+	headers.set('Connection', 'keep-alive');
+	headers.set('Access-Control-Allow-Origin', '*');
+	headers.set('Access-Control-Allow-Headers', 'Cache-Control');
+	headers.set('X-Accel-Buffering', 'no');
+	headers.append('Cache-Control', 'no-transform');
+
+	return new Response(stream, { headers });
 };
