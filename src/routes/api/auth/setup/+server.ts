@@ -1,6 +1,7 @@
 import { prisma } from '$lib/server/prisma';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
 import { json } from '@sveltejs/kit';
+import * as argon2 from 'argon2';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
 
@@ -29,7 +30,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 
 		// Hash password and update user
-		const hashedPassword = await Bun.password.hash(password);
+		const hashedPassword = await argon2.hash(password);
 		const updatedUser = await prisma.user.update({
 			where: { id: user.id },
 			data: {

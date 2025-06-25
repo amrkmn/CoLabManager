@@ -1,5 +1,6 @@
 import { prisma } from '$lib/server/prisma';
 import { json } from '@sveltejs/kit';
+import * as argon2 from "argon2";
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
 
@@ -101,7 +102,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		}
 
 		// Hash password
-		const hashedPassword = await Bun.password.hash(parsed.password);
+		const hashedPassword = await argon2.hash(parsed.password);
 
 		// Create user
 		const newUser = await prisma.user.create({

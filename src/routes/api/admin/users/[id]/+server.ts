@@ -1,9 +1,10 @@
-import { prisma } from '$lib/server/prisma';
 import { deleteFromS3 } from '$lib/server/minio';
+import { prisma } from '$lib/server/prisma';
 import { json } from '@sveltejs/kit';
+import * as argon2 from 'argon2';
+import path from 'path';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
-import path from 'path';
 
 const UpdateUserSchema = z.object({
 	name: z.string().min(1, 'Name is required').optional(),
@@ -100,7 +101,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 		if (parsed.email) updateData.email = parsed.email;
 		if (parsed.contactNumber) updateData.contactNumber = parsed.contactNumber;
 		if (parsed.role) updateData.role = parsed.role;
-		if (parsed.password) updateData.password = await Bun.password.hash(parsed.password);
+		if (parsed.password) updateData.password = await argon2.hash(parsed.password);
 
 		// Update user
 		const updatedUser = await prisma.user.update({

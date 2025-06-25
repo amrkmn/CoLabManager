@@ -1,7 +1,8 @@
-import { getPublicURL, uploadToS3, deleteFromS3 } from '$lib/server/minio';
+import { deleteFromS3, getPublicURL, uploadToS3 } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
+import * as argon2 from 'argon2';
 import path from 'path';
 import { z } from 'zod';
 
@@ -81,7 +82,7 @@ export const PUT = async ({ request, locals }) => {
 			name: parsed.name,
 			email: parsed.email,
 			contactNumber: parsed.contactNumber,
-			...(parsed.password && { password: await Bun.password.hash(parsed.password) }),
+			...(parsed.password && { password: await argon2.hash(parsed.password) }),
 			...(avatar && { avatar })
 		}
 	});

@@ -1,12 +1,13 @@
+import { env } from '$env/dynamic/private';
+import { generateVerificationEmailHtml, sendEmail } from '$lib/server/email';
 import { prisma } from '$lib/server/prisma';
-import { sendEmail, generateVerificationEmailHtml } from '$lib/server/email';
 import { isFirstUserSetup } from '$lib/server/setup';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
+import * as argon2 from "argon2";
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
-import { env } from '$env/dynamic/private';
-import { randomUUID } from 'crypto';
 
 const Register = z.object({
 	name: z.string({ required_error: 'name_required' }),
@@ -28,7 +29,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		// Check if this is the first user (setup mode)
 		const isFirstUser = await isFirstUserSetup();
 
-		const hashedPassword = await Bun.password.hash(password);
+		const hashedPassword = await argon2.hash(password);
 		const verificationToken = randomUUID();
 
 		await prisma.user.create({

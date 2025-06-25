@@ -1,9 +1,10 @@
-import { z } from 'zod';
-import type { RequestHandler } from './$types';
 import { prisma } from '$lib/server/prisma';
+import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
-import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
+import * as argon2 from 'argon2';
+import { z } from 'zod';
+import type { RequestHandler } from './$types';
 
 const Login = z.object({
 	email: z.string({ required_error: 'email_required' }).email('email_invalid'),
@@ -20,7 +21,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		if (isNullish(user)) {
 			return json({ error: true, message: ['invalid_credentials'] }, { status: 401 });
 		}
-		const validPassword = await Bun.password.verify(password, user.password);
+
+		const validPassword = await argon2.verify(user.password, password);
 		if (!validPassword) {
 			return json({ error: true, message: ['invalid_credentials'] }, { status: 401 });
 		}
@@ -42,6 +44,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			return json({ error: true, message: messages }, { status: 400 });
 		}
 
+		console.log('Login failed:', error);
 		return json({ error: true, message: ['internal_error'] }, { status: 500 });
 	}
 };

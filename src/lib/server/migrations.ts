@@ -1,9 +1,13 @@
-import { Migrate } from '@prisma/migrate';
 import { log } from '$lib/utils/logger';
-import { loadSchemaContext } from '@prisma/internals';
+import loadSchemaContextPkg from '@prisma/internals';
+import migratePkg from '@prisma/migrate';
 
 // @ts-ignore
-import { ensureDatabaseExists } from '@prisma/migrate/dist/utils/ensureDatabaseExists';
+import ensureDatabaseExistsPkg from '@prisma/migrate/dist/utils/ensureDatabaseExists.js';
+
+const { Migrate } = migratePkg;
+const { loadSchemaContext } = loadSchemaContextPkg;
+const { ensureDatabaseExists } = ensureDatabaseExistsPkg;
 
 export async function runMigrations() {
 	const schemaContext = await loadSchemaContext({

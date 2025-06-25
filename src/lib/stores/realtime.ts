@@ -26,7 +26,7 @@ class RealtimeStore {
 		this.eventSource = new EventSource(`/api/projects/${projectId}/realtime`);
 
 		this.eventSource.onopen = () => {
-			console.log('SSE connected to project:', projectId);
+			// console.log('SSE connected to project:', projectId);
 			this.connected.set(true);
 			this.error.set(null);
 		};
@@ -48,7 +48,7 @@ class RealtimeStore {
 		};
 
 		this.eventSource.onerror = (event) => {
-			console.error('SSE error:', event);
+			// console.error('SSE error:', event);
 			this.connected.set(false);
 			this.error.set('Connection lost. Attempting to reconnect...');
 

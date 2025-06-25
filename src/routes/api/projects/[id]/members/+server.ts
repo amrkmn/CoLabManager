@@ -1,9 +1,9 @@
+import { env } from '$env/dynamic/private';
+import { generateProjectInviteEmailHtml, sendEmail } from '$lib/server/email';
+import { prisma } from '$lib/server/prisma';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import { prisma } from '$lib/server/prisma';
-import { sendEmail, generateProjectInviteEmailHtml } from '$lib/server/email';
-import { env } from '$env/dynamic/private';
-import { ulid } from 'ulid';
+import * as argon2 from "argon2";
 import { randomUUID } from 'crypto';
 
 // GET /api/projects/[id]/members - List all members of a project
@@ -113,7 +113,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 
 			// Store invite details in a temporary way (you might want to create a separate table for this)
 			// For now, we'll create a user record with invite token
-			const hashedPassword = await Bun.password.hash(randomUUID()); // temporary password
+			const hashedPassword = await argon2.hash(randomUUID()); // temporary password
 			const newUser = await prisma.user.create({
 				data: {
 					name: email.split('@')[0], // temporary name

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { runMigrations } from '$lib/server/migrations';
 import {
 	deleteSessionTokenCookie,
