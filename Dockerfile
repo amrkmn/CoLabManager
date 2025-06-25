@@ -1,12 +1,17 @@
 # -------- Build Stage --------
-FROM oven/bun:alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
+
+# Install Bun
+RUN apk add --no-cache curl && \
+    curl -fsSL https://bun.sh/install | bash && \
+    mv /root/.bun/bin/bun /usr/local/bin/bun
 
 # Copy only necessary files for dependency installation
 COPY package.json bun.lock ./
 
-# Install only production dependencies
+# Install only production dependencies using Bun
 RUN bun install --frozen-lockfile
 
 # Copy Prisma schema and generate client
@@ -20,7 +25,7 @@ COPY . .
 RUN bun run build
 
 # -------- Production Stage --------
-FROM oven/bun:alpine AS prod
+FROM node:22-alpine AS prod
 
 WORKDIR /app
 
@@ -32,9 +37,14 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 
+# Install Bun in production image for bunx prisma generate (optional, can be removed if not needed)
+RUN apk add --no-cache curl && \
+    curl -fsSL https://bun.sh/install | bash && \
+    mv /root/.bun/bin/bun /usr/local/bin/bun
+
 # Re-generate Prisma client in case the target image is architecture-dependent
 RUN bunx prisma generate
 
 EXPOSE 3000
 
-CMD ["bun", "run", "start"]
+CMD ["node", "build/index.js"]
