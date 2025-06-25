@@ -38,6 +38,9 @@ COPY .yarn ./.yarn
 # Install production dependencies only
 RUN yarn workspaces focus --production && yarn cache clean
 
+# Generate Prisma client after installing production dependencies
+RUN yarn prisma generate
+
 # -------- Production Stage --------
 FROM node:22-alpine AS prod
 
@@ -57,8 +60,10 @@ COPY --from=builder /app/package.json ./package.json
 # Copy Prisma schema (needed for migrations and client runtime)
 COPY --from=builder /app/prisma ./prisma/
 
-# Copy production dependencies only
+# Copy production dependencies and generated Prisma client only
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 
 # Change ownership to non-root user
 RUN chown -R nextjs:nodejs /app
