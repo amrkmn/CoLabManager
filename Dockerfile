@@ -60,10 +60,6 @@ COPY --from=builder /app/prisma ./prisma/
 # Copy production dependencies only
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy generated Prisma client (essential for runtime)
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-
 # Change ownership to non-root user
 RUN chown -R nextjs:nodejs /app
 USER nextjs
