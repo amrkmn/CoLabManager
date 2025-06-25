@@ -4,7 +4,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Install Bun
-RUN apk add --no-cache curl && \
+RUN apk add --no-cache curl bash && \
     curl -fsSL https://bun.sh/install | bash && \
     mv /root/.bun/bin/bun /usr/local/bin/bun
 
@@ -38,7 +38,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 
 # Install Bun in production image for bunx prisma generate (optional, can be removed if not needed)
-RUN apk add --no-cache curl && \
+RUN apk add --no-cache curl bash && \
     curl -fsSL https://bun.sh/install | bash && \
     mv /root/.bun/bin/bun /usr/local/bin/bun
 
