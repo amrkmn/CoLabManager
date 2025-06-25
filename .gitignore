@@ -23,4 +23,9 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# Docker Compose file
 compose.yaml
+
+# Yarn files
+.yarn/install-state.gz
+.yarn/build-state.yml

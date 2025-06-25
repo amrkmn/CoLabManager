@@ -3,47 +3,37 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Install Bun
-RUN apk add --no-cache curl bash && \
-    curl -fsSL https://bun.sh/install | bash && \
-    mv /root/.bun/bin/bun /usr/local/bin/bun
+# Enable corepack and use Yarn v4
+RUN corepack enable && corepack prepare yarn@4.9.2 --activate
 
-# Copy only necessary files for dependency installation
-COPY package.json bun.lock ./
+# Copy necessary files for install
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn ./.yarn
 
-# Install only production dependencies using Bun
-RUN bun install --frozen-lockfile
+# Install all dependencies
+RUN yarn install --immutable
 
 # Copy Prisma schema and generate client
 COPY prisma ./prisma/
-RUN bun x prisma generate
+RUN yarn prisma generate
 
-# Copy the rest of the source code
+# Copy the rest of the app
 COPY . .
 
 # Build the app
-RUN bun run build
+RUN yarn build
+
 
 # -------- Production Stage --------
 FROM node:22-alpine AS prod
 
 WORKDIR /app
-
 ENV NODE_ENV=production
 
-# Copy build output and minimal runtime dependencies
+# Copy built app and runtime deps
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
-
-# Install Bun in production image for bunx prisma generate (optional, can be removed if not needed)
-RUN apk add --no-cache curl bash && \
-    curl -fsSL https://bun.sh/install | bash && \
-    mv /root/.bun/bin/bun /usr/local/bin/bun
-
-# Re-generate Prisma client in case the target image is architecture-dependent
-RUN bun x prisma generate
 
 EXPOSE 3000
 

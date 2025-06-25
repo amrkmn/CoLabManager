@@ -40,11 +40,11 @@
         "@tailwindcss/typography": "^0.5.16",
         "@tailwindcss/vite": "^4.1.10",
         "@types/bun": "^1.2.17",
-        "prettier": "^3.6.0",
+        "prettier": "^3.6.1",
         "prettier-plugin-svelte": "^3.4.0",
         "prettier-plugin-tailwindcss": "^0.6.13",
         "prisma": "^6.10.1",
-        "svelte": "^5.34.7",
+        "svelte": "^5.34.8",
         "svelte-adapter-bun": "^0.5.2",
         "svelte-check": "^4.2.2",
         "svelte-tel-input": "^3.6.0",
@@ -52,5 +52,6 @@
         "typescript": "^5.8.3",
         "vite": "^6.3.5",
         "vite-plugin-devtools-json": "^0.0.3"
-    }
+    },
+    "packageManager": "yarn@4.9.2"
 }
