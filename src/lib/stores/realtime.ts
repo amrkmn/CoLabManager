@@ -52,12 +52,13 @@ class RealtimeStore {
 			this.connected.set(false);
 			this.error.set('Connection lost. Attempting to reconnect...');
 
-			// Attempt to reconnect after 3 seconds
-			setTimeout(() => {
-				if (this.projectId) {
-					this.connect(this.projectId);
-				}
-			}, 3000);
+			if (this.eventSource?.readyState === EventSource.CLOSED) {
+				setTimeout(() => {
+					if (this.projectId) {
+						this.connect(this.projectId);
+					}
+				}, 5000);
+			}
 		};
 	}
 
