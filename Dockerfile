@@ -16,7 +16,7 @@ RUN bun install --frozen-lockfile
 
 # Copy Prisma schema and generate client
 COPY prisma ./prisma/
-RUN bunx prisma generate
+RUN bun x prisma generate
 
 # Copy the rest of the source code
 COPY . .
@@ -43,7 +43,7 @@ RUN apk add --no-cache curl bash && \
     mv /root/.bun/bin/bun /usr/local/bin/bun
 
 # Re-generate Prisma client in case the target image is architecture-dependent
-RUN bunx prisma generate
+RUN bun x prisma generate
 
 EXPOSE 3000
 
