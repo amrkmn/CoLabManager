@@ -1,10 +1,10 @@
-import 'dotenv/config';
 import { runMigrations } from '$lib/server/migrations';
+import { prisma } from '$lib/server/prisma';
+import 'dotenv/config';
 import {
-	deleteSessionTokenCookie,
-	invalidateSession,
-	setSessionTokenCookie,
-	validateSessionToken
+    deleteSessionTokenCookie,
+    setSessionTokenCookie,
+    validateSessionToken
 } from './lib/server/session';
 
 import type { Handle } from '@sveltejs/kit';
@@ -19,20 +19,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
-	const { session, user } = await validateSessionToken(token);
+	const session = await validateSessionToken(token);
 	if (session !== null) {
-		setSessionTokenCookie(event.cookies, token, session.expiresAt);
+		setSessionTokenCookie(event.cookies, token);
+
+		// Get user data
+		const user = await prisma.user.findUnique({
+			where: { id: session.userId }
+		});
+
+		event.locals.session = session;
+		if (user !== null) {
+			const { password, ...userWithoutPassword } = user;
+			event.locals.user = userWithoutPassword;
+		} else {
+			event.locals.user = null;
+		}
 	} else {
-		await invalidateSession(token);
+		// Session is invalid, clean up
 		deleteSessionTokenCookie(event.cookies);
-	}
-
-	event.locals.session = session;
-
-	if (user !== null) {
-		const { password, ...userWithoutPassword } = user;
-		event.locals.user = userWithoutPassword;
-	} else {
+		event.locals.session = null;
 		event.locals.user = null;
 	}
 

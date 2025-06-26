@@ -1,4 +1,4 @@
-import { deleteSessionTokenCookie, invalidateSession } from '$lib/server/session';
+import { deleteSessionTokenCookie, deleteSession } from '$lib/server/session';
 import { isNullish } from '@sapphire/utilities';
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
@@ -9,7 +9,8 @@ export const POST: RequestHandler = async ({ cookies, locals }) => {
 	if (!isNullish(token)) {
 		try {
 			deleteSessionTokenCookie(cookies);
-			await invalidateSession(token);
+			const [sessionId] = token.split('.');
+			await deleteSession(sessionId);
 		} catch (error) {}
 	}
 	locals.session = null;

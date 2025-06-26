@@ -32,7 +32,7 @@ model User {
     contactNumber     String
     role              Role     @default(User)
     avatar            String?
-    createdAt          DateTime @default(now())
+    createdAt         DateTime @default(now())
     emailVerified     Boolean  @default(false)
     verificationToken String?
     inviteToken       String?
@@ -101,9 +101,11 @@ model Message {
 }
 
 model Session {
-    id        String   @id
-    userId    String
-    expiresAt DateTime
+    id             String   @id
+    userId         String
+    secretHash     Bytes
+    createdAt      DateTime @default(now())
+    lastVerifiedAt DateTime @default(now())
 
     user User @relation(fields: [userId], references: [id])
 }

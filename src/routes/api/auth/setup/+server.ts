@@ -1,5 +1,6 @@
 import { prisma } from '$lib/server/prisma';
-import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
+// import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
+import { createSession, setSessionTokenCookie } from '$lib/server/session';
 import { json } from '@sveltejs/kit';
 import * as argon2 from 'argon2';
 import { z } from 'zod';
@@ -43,9 +44,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		});
 
 		// Create session and log them in
-		const sessionToken = generateSessionToken();
-		const session = await createSession(sessionToken, updatedUser.id);
-		setSessionTokenCookie(cookies, sessionToken, session.expiresAt);
+		const session = await createSession(updatedUser.id);
+		setSessionTokenCookie(cookies, session.token);
 
 		const { password: _, ...userWithoutPassword } = updatedUser;
 		return json({ success: true, user: userWithoutPassword });

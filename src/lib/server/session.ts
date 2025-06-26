@@ -1,81 +1,123 @@
 import { env } from '$env/dynamic/private';
 import { prisma } from '$lib/server/prisma';
-import { sha256 } from '@oslojs/crypto/sha2';
-import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
-import type { Session, User } from '@prisma/client';
 import { isNullish } from '@sapphire/utilities';
 import type { Cookies } from '@sveltejs/kit';
+import ms from 'ms';
 
-export function generateSessionToken(): string {
-	const bytes = new Uint8Array(20);
-	crypto.getRandomValues(bytes);
-	const token = encodeBase32LowerCaseNoPadding(bytes);
-	return token;
+interface Session {
+	id: string;
+	userId: string;
+	secretHash: Uint8Array;
+	createdAt: Date;
+	lastVerifiedAt: Date;
 }
 
-export async function createSession(token: string, userId: string): Promise<Session> {
-	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	const session: Session = {
-		id: sessionId,
+interface SessionWithToken extends Session {
+	token: string;
+}
+
+const inactivityTimeout = ms('10d');
+const activityCheckInterval = ms('1h');
+
+function generateSecureRandomString(): string {
+	const alphabet = 'abcdefghijklmnpqrstuvwxyz23456789';
+
+	const bytes = new Uint8Array(24);
+	crypto.getRandomValues(bytes);
+
+	let id = '';
+	for (let i = 0; i < bytes.length; i++) {
+		id += alphabet[bytes[i] >> 3];
+	}
+	return id;
+}
+
+export async function createSession(userId: string): Promise<SessionWithToken> {
+	const now = new Date();
+
+	const id = generateSecureRandomString();
+	const secret = generateSecureRandomString();
+	const secretHash = await hashSecret(secret);
+
+	const token = `${id}.${secret}`;
+
+	const session: SessionWithToken = {
+		id,
 		userId,
-		expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+		secretHash,
+		createdAt: now,
+		lastVerifiedAt: now,
+		token
 	};
+
 	await prisma.session.create({
-		data: session
+		data: {
+			id: session.id,
+			userId: session.userId,
+			secretHash: session.secretHash,
+			createdAt: session.createdAt,
+			lastVerifiedAt: now
+		}
 	});
 	return session;
 }
 
-export async function validateSessionToken(token: string): Promise<SessionValidationResult> {
-	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	const result = await prisma.session.findUnique({
-		where: {
-			id: sessionId
-		},
-		include: {
-			user: true
-		}
+export async function validateSessionToken(token: string): Promise<Session | null> {
+	const now = new Date();
+
+	const [sessionId, sessionSecret] = token.split('.');
+	if (!sessionId || !sessionSecret) {
+		return null;
+	}
+	const session = await prisma.session.findUnique({
+		where: { id: sessionId }
 	});
-	if (isNullish(result)) {
-		return { session: null, user: null };
+
+	if (!session) {
+		return null;
 	}
-	const { user, ...session } = result;
-	if (Date.now() >= session.expiresAt.getTime()) {
-		await prisma.session.deleteMany({ where: { id: sessionId } });
-		return { session: null, user: null };
+
+	const tokenSecretHash = await hashSecret(sessionSecret);
+	const isValidSecret = constantTimeEqual(session.secretHash, tokenSecretHash);
+	if (!isValidSecret) {
+		return null;
 	}
-	if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
-		session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-		await prisma.session.update({
-			where: {
-				id: session.id
-			},
-			data: {
-				expiresAt: session.expiresAt
-			}
-		});
+
+	if (now.getTime() - session.lastVerifiedAt.getTime() >= activityCheckInterval) {
+		session.lastVerifiedAt = now;
+		await prisma.session.update({ where: { id: session.id }, data: { lastVerifiedAt: now } });
 	}
-	return { session, user };
+
+	return session;
 }
 
-export async function invalidateSession(token: string): Promise<void> {
-	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	await prisma.session.deleteMany({ where: { id: sessionId } });
-}
+export async function getSession(sessionId: string): Promise<Session | null> {
+	const now = new Date();
 
-export async function invalidateAllSessions(userId: string): Promise<void> {
-	await prisma.session.deleteMany({
-		where: {
-			userId: userId
-		}
+	const session = await prisma.session.findUnique({
+		where: { id: sessionId }
 	});
+	if (isNullish(session)) {
+		throw null;
+	}
+
+	if (now.getTime() - session.createdAt.getTime() >= inactivityTimeout) {
+		await deleteSession(sessionId);
+		return null;
+	}
+
+	return session;
 }
 
-export function setSessionTokenCookie(cookies: Cookies, token: string, expiresAt: Date): void {
+export async function deleteSession(sessionId: string): Promise<void> {
+	await prisma.session.delete({ where: { id: sessionId } });
+}
+
+export function setSessionTokenCookie(cookies: Cookies, token: string): void {
 	cookies.set('session', token, {
 		httpOnly: true,
 		sameSite: 'lax',
-		expires: expiresAt,
+		maxAge: ms('1d') / 1000, // Convert to seconds as required by Set-Cookie
 		path: '/',
 		secure: env.NODE_ENV === 'production'
 	});
@@ -83,14 +125,36 @@ export function setSessionTokenCookie(cookies: Cookies, token: string, expiresAt
 
 export function deleteSessionTokenCookie(cookies: Cookies): void {
 	cookies.delete('session', {
-		httpOnly: true,
-		sameSite: 'lax',
-		maxAge: 0,
-		path: '/',
-		secure: env.NODE_ENV === 'production'
+		path: '/'
 	});
 }
 
-export type SessionValidationResult =
-	| { session: Session; user: User }
-	| { session: null; user: null };
+async function hashSecret(secret: string): Promise<Uint8Array> {
+	const secretBytes = new TextEncoder().encode(secret);
+	const secretHashBuffer = await crypto.subtle.digest('SHA-256', secretBytes);
+	return new Uint8Array(secretHashBuffer);
+}
+
+function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
+	if (a.byteLength !== b.byteLength) {
+		return false;
+	}
+	let c = 0;
+	for (let i = 0; i < a.byteLength; i++) {
+		c |= a[i] ^ b[i];
+	}
+	return c === 0;
+}
+
+export async function getSessionWithUser(sessionId: string) {
+	const session = await getSession(sessionId);
+	if (!session) {
+		return { session: null, user: null };
+	}
+
+	const user = await prisma.user.findUnique({
+		where: { id: session.userId }
+	});
+
+	return { session, user };
+}

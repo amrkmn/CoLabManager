@@ -4,6 +4,7 @@ import migratePkg from '@prisma/migrate';
 
 // @ts-ignore
 import ensureDatabaseExistsPkg from '@prisma/migrate/dist/utils/ensureDatabaseExists.js';
+import { cleanupExpiredSessions } from './session';
 
 const { Migrate } = migratePkg;
 const { loadSchemaContext } = loadSchemaContextPkg;
@@ -31,7 +32,7 @@ export async function runMigrations() {
 			logger.info('database created');
 		}
 	} catch (e) {
-		logger.error('failed to create database' + e);
+		logger.error('failed to create database: ' + e);
 		logger.error('try creating the database manually and running the server again');
 
 		migrate.stop();
@@ -44,7 +45,7 @@ export async function runMigrations() {
 		const { appliedMigrationNames } = await migrate.applyMigrations();
 		migrationIds = appliedMigrationNames;
 	} catch (e) {
-		logger.error('failed to apply migrations' + e);
+		logger.error('failed to apply migrations: ' + e);
 
 		migrate.stop();
 		process.exit(1);
@@ -58,4 +59,13 @@ export async function runMigrations() {
 	}
 
 	logger.info(`applied migrations: ${migrationIds.join(', ')}`);
+
+	try {
+		const deletedCount = await cleanupExpiredSessions();
+		if (deletedCount > 0) {
+			logger.info(`cleaned up ${deletedCount} expired sessions`);
+		}
+	} catch (e) {
+		logger.error('failed to cleanup expired sessions: ' + e);
+	}
 }

@@ -1,5 +1,5 @@
 import { prisma } from '$lib/server/prisma';
-import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
+import { createSession, setSessionTokenCookie } from '$lib/server/session';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
 import * as argon2 from 'argon2';
@@ -33,9 +33,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 
 		const { password: _, ...userWithoutPassword } = user;
-		const token = generateSessionToken();
-		const session = await createSession(token, user.id);
-		setSessionTokenCookie(cookies, token, session.expiresAt);
+		const session = await createSession(user.id);
+		setSessionTokenCookie(cookies, session.token);
 
 		return json({ user: userWithoutPassword });
 	} catch (error) {
