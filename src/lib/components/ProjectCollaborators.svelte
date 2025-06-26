@@ -110,14 +110,17 @@
 		{#if isLoadingMembers}
 			<div class="h-8 w-8 animate-pulse rounded-full bg-slate-300"></div>
 		{:else if members.length > 0}
-			{#each members.slice(0, 4) as member (member.id)}
+			{#each members.slice(0, 4) as member, i (member.id)}
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 				<img
 					src={getAvatarUrl(member)}
 					alt={member.name}
-					class="h-8 w-8 cursor-pointer rounded-full border-2 border-white object-cover transition-transform hover:scale-110"
-					title="{member.name} ({member.role})"
+					class={cn(
+						'h-8 w-8 cursor-pointer rounded-full border-2 border-white object-cover transition-transform hover:scale-110',
+						i !== 0 ? '-ml-2' : ''
+					)}
+					title={`${member.name} (${member.role})`}
 					onclick={() => (showMembersModal = true)}
 				/>
 			{/each}
