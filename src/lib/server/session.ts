@@ -129,6 +129,20 @@ export function deleteSessionTokenCookie(cookies: Cookies): void {
 	});
 }
 
+export async function cleanupExpiredSessions(): Promise<number> {
+	const now = new Date();
+	const expiredThreshold = new Date(now.getTime() - inactivityTimeout);
+
+	const result = await prisma.session.deleteMany({
+		where: {
+			createdAt: {
+				lt: expiredThreshold // Delete sessions older than the inactivity timeout
+			}
+		}
+	});
+	return result.count;
+}
+
 async function hashSecret(secret: string): Promise<Uint8Array> {
 	const secretBytes = new TextEncoder().encode(secret);
 	const secretHashBuffer = await crypto.subtle.digest('SHA-256', secretBytes);

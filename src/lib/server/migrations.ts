@@ -4,7 +4,7 @@ import migratePkg from '@prisma/migrate';
 
 // @ts-ignore
 import ensureDatabaseExistsPkg from '@prisma/migrate/dist/utils/ensureDatabaseExists.js';
-import { cleanupExpiredSessions } from './session';
+import { cleanupExpiredSessions } from '$lib/server/session';
 
 const { Migrate } = migratePkg;
 const { loadSchemaContext } = loadSchemaContextPkg;
