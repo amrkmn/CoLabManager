@@ -80,7 +80,7 @@ export async function uploadToS3(
 	});
 
 	await s3Client.send(command);
-	return `/${BUCKET_NAME}/${fileName}`;
+	return fileName;
 }
 
 export async function getObjectFromS3(fileName: string): Promise<Buffer> {
@@ -132,6 +132,8 @@ export const getPublicURL = (objectName: string) => {
 	if (objectName.startsWith('/')) {
 		objectName = objectName.substring(1);
 	}
-	const url = `${config.s3.host}/${BUCKET_NAME}/${objectName}`;
+	const url = config.s3.pathStyle
+		? `${config.s3.host}/${BUCKET_NAME}/${objectName}`
+		: `${config.s3.host.replace('://', `://${BUCKET_NAME}.`)}/${objectName}`;
 	return url;
 };

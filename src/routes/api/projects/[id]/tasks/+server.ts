@@ -164,7 +164,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 		if (file && typeof File !== 'undefined' && file instanceof File && file.size > 0) {
 			const fileName = `projects/${projectId}/tasks/${ulid()}/${file.name}`;
 			const buffer = Buffer.from(await file.arrayBuffer());
-			const s3Path = await uploadToS3(fileName, buffer, file.type);
+			await uploadToS3(fileName, buffer, file.type);
 			createdTask = await prisma.task.create({
 				data: {
 					title: title.trim(),
@@ -176,7 +176,7 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 					file: {
 						create: {
 							name: file.name,
-							path: s3Path,
+							path: fileName,
 							uploadedBy: user.id,
 							projectId: projectId
 						}
