@@ -7,6 +7,7 @@ import {
 	GetObjectCommand,
 	DeleteObjectCommand
 } from '@aws-sdk/client-s3';
+import path from 'path';
 
 const config = {
 	s3: {
@@ -16,7 +17,8 @@ const config = {
 		accessKeyId: env.S3_ACCESS_KEY_ID,
 		secretAccessKey: env.S3_SECRET_ACCESS_KEY,
 		host: env.S3_HOST,
-		region: env.S3_REGION || 'us-east-1'
+		region: env.S3_REGION || 'us-east-1',
+		pathStyle: env.S3_FORCE_PATH_STYLE === 'true'
 	}
 };
 
@@ -32,7 +34,7 @@ export const s3Client = new S3Client({
 		accessKeyId: config.s3.accessKeyId!,
 		secretAccessKey: config.s3.secretAccessKey!
 	},
-	forcePathStyle: true // Important for MinIO and custom S3 endpoints
+	forcePathStyle: config.s3.pathStyle
 });
 
 async function ensureBucketExists(bucket: string) {
