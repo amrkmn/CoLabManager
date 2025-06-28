@@ -29,3 +29,6 @@ compose.yaml
 # Yarn files
 .yarn/install-state.gz
 .yarn/build-state.yml
+
+# SpecStory files
+.specstory/ai_rules_backups
