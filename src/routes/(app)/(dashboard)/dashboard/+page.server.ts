@@ -2,7 +2,6 @@ import { getPublicURL } from '$lib/server/minio.js';
 import { prisma } from '$lib/server/prisma.js';
 import { isNullish } from '@sapphire/utilities';
 import { redirect } from '@sveltejs/kit';
-import { get } from 'svelte/store';
 
 export const load = async ({ locals }) => {
 	if (isNullish(locals.user)) {

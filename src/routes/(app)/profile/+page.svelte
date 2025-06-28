@@ -3,8 +3,6 @@
 	import { cn } from '$lib/utils/style';
 	import { onMount } from 'svelte';
 
-	let { data } = $props();
-
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');

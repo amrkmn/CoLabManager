@@ -2,6 +2,7 @@ import { prisma } from '$lib/server/prisma.js';
 import { getPublicURL } from '$lib/server/minio.js';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
+import { isNullish } from '@sapphire/utilities';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	try {
@@ -50,7 +51,9 @@ export const GET: RequestHandler = async ({ locals }) => {
 				user: {
 					id: task.user.id,
 					name: task.user.name,
-					avatar: task.user.avatar
+					avatar: isNullish(task.user.avatar)
+						? `https://ui-avatars.com/api/?name=${encodeURIComponent(task.user.name)}`
+						: getPublicURL(task.user.avatar)
 				},
 				files: task.file.map((file) => ({
 					id: file.id,

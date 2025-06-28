@@ -25,7 +25,14 @@ export const GET = async ({ locals }) => {
 		select: { name: true, email: true, contactNumber: true, role: true, avatar: true }
 	});
 
-	return json(user);
+	if (isNullish(user)) {
+		return json({ error: true, message: 'User not found' }, { status: 404 });
+	}
+
+	const avatar = isNullish(user.avatar)
+		? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
+		: getPublicURL(user.avatar);
+	return json({ ...user, avatar });
 };
 
 export const PUT = async ({ request, locals }) => {
