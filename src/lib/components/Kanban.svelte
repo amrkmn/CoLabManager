@@ -127,7 +127,7 @@
 				throw new Error(result.message || 'Failed to load tasks');
 			}
 
-			const tasks = result.tasks || [];
+			const tasks: Task[] = result.tasks || [];
 			updateColumns(tasks);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load tasks';

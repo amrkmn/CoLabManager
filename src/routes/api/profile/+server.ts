@@ -65,7 +65,7 @@ export const PUT = async ({ request, locals }) => {
 		if (currentUser?.avatar) {
 			try {
 				// Extract the file path from the URL
-				const oldPath = `avatars/${locals.user.id}${path.extname(currentUser.avatar)}`;
+				const oldPath = currentUser.avatar;
 				await deleteFromS3(oldPath);
 			} catch (error) {
 				console.error('Failed to delete old profile picture:', error);
@@ -74,7 +74,7 @@ export const PUT = async ({ request, locals }) => {
 		}
 
 		await uploadToS3(fileName, fileBuffer, profilePicture.type);
-		avatar = getPublicURL(fileName);
+		avatar = fileName;
 	}
 
 	await prisma.user.update({

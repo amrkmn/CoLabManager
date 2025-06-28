@@ -1,4 +1,4 @@
-import { prisma } from '$lib/server/prisma.js';
+import { getPublicURL } from '$lib/server/minio';
 import { isNullish } from '@sapphire/utilities';
 import { redirect } from '@sveltejs/kit';
 
@@ -7,7 +7,13 @@ export const load = async ({ locals }) => {
 		return redirect(302, '/');
 	}
 
+	const avatar = isNullish(locals.user.avatar)
+		? `https://ui-avatars.com/api/?name=${encodeURIComponent(locals.user.name)}`
+		: getPublicURL(locals.user.avatar);
 	return {
-		user: locals.user
+		user: {
+			...locals.user,
+			avatar
+		}
 	};
 };

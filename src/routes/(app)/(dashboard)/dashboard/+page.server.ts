@@ -1,6 +1,8 @@
+import { getPublicURL } from '$lib/server/minio.js';
 import { prisma } from '$lib/server/prisma.js';
 import { isNullish } from '@sapphire/utilities';
 import { redirect } from '@sveltejs/kit';
+import { get } from 'svelte/store';
 
 export const load = async ({ locals }) => {
 	if (isNullish(locals.user)) {
@@ -38,8 +40,14 @@ export const load = async ({ locals }) => {
 		}
 	});
 
+	const avatar = isNullish(locals.user.avatar)
+		? `https://ui-avatars.com/api/?name=${encodeURIComponent(locals.user.name)}`
+		: getPublicURL(locals.user.avatar);
 	return {
-		user: locals.user,
+		user: {
+			...locals.user,
+			avatar
+		},
 		projects: projects.map((project) => ({
 			...project,
 			currentUserRole: project.members[0]?.role || 'Member'

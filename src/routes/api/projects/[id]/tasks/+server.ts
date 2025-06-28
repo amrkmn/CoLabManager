@@ -69,7 +69,9 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 			user: {
 				id: task.user.id,
 				name: task.user.name,
-				avatar: task.user.avatar
+				avatar: !task.user.avatar
+					? `https://ui-avatars.com/api/?name=${encodeURIComponent(task.user.name)}`
+					: getPublicURL(task.user.avatar)
 			},
 			files: task.file.map((file) => ({
 				id: file.id,
@@ -228,6 +230,8 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
 				id: createdTask.user.id,
 				name: createdTask.user.name,
 				avatar: createdTask.user.avatar
+					? getPublicURL(createdTask.user.avatar)
+					: `https://ui-avatars.com/api/?name=${encodeURIComponent(createdTask.user.name)}`
 			},
 			files: createdTask.file.map((file) => {
 				return {

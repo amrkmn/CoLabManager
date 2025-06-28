@@ -1,9 +1,10 @@
 import { env } from '$env/dynamic/private';
 import { generateProjectInviteEmailHtml, sendEmail } from '$lib/server/email';
+import { getPublicURL } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import * as argon2 from "argon2";
+import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
 
 // GET /api/projects/[id]/members - List all members of a project
@@ -28,7 +29,16 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 			where: { projectId },
 			include: { user: { select: { id: true, name: true, email: true, avatar: true } } }
 		});
-		return json({ success: true, members });
+		const membersWithAvatar = members.map((m) => ({
+			...m,
+			user: {
+				...m.user,
+				avatar: !m.user.avatar
+					? `https://ui-avatars.com/api/?name=${encodeURIComponent(m.user.name)}`
+					: getPublicURL(m.user.avatar)
+			}
+		}));
+		return json({ success: true, members: membersWithAvatar });
 	} catch (err) {
 		console.error('Error fetching project members:', err);
 		return json({ error: true, message: 'Failed to fetch project members' }, { status: 500 });

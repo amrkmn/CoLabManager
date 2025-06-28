@@ -1,3 +1,4 @@
+import { getPublicURL } from '$lib/server/minio';
 import { prisma } from '$lib/server/prisma';
 import { isNullish } from '@sapphire/utilities';
 import { redirect } from '@sveltejs/kit';
@@ -11,6 +12,10 @@ export const load = async ({ locals }) => {
 	if (user.role !== 'Admin') {
 		return redirect(302, '/dashboard');
 	}
+
+	const avatar = isNullish(user.avatar)
+		? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
+		: getPublicURL(user.avatar);
 
 	try {
 		// Load initial statistics for the admin dashboard
@@ -32,7 +37,7 @@ export const load = async ({ locals }) => {
 		]);
 
 		return {
-			user,
+			user: { ...user, avatar },
 			initialStats: {
 				totalUsers,
 				totalProjects,
@@ -43,7 +48,7 @@ export const load = async ({ locals }) => {
 	} catch (err) {
 		console.error('Error loading admin data:', err);
 		return {
-			user,
+			user: { ...user, avatar },
 			initialStats: {
 				totalUsers: 0,
 				totalProjects: 0,
