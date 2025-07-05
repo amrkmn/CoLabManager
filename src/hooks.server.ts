@@ -26,38 +26,47 @@ function initWebSocketServer() {
 			port: 3001,
 			path: '/ws',
 			verifyClient: async (info: any) => {
-				// Extract project ID and user ID from query parameters
-				const url = new URL(info.req.url || '', `http://${info.req.headers.host}`);
-				const projectId = url.searchParams.get('projectId');
-				const sessionToken = url.searchParams.get('session');
-				
-				if (!projectId || !sessionToken) {
-					return false;
-				}
-
-				// Validate session
-				const session = await validateSessionToken(sessionToken);
-				if (!session) {
-					return false;
-				}
-
-				// Verify user has access to project
-				const projectMembership = await prisma.projectMember.findFirst({
-					where: {
-						projectId: projectId,
-						userId: session.userId
+				try {
+					// Extract project ID and user ID from query parameters
+					const url = new URL(info.req.url || '', `http://${info.req.headers.host}`);
+					const projectId = url.searchParams.get('projectId');
+					const sessionToken = url.searchParams.get('session');
+					
+					if (!projectId || !sessionToken) {
+						console.log('WebSocket verification failed: missing projectId or session');
+						return false;
 					}
-				});
 
-				if (!projectMembership) {
+					// Validate session
+					const session = await validateSessionToken(sessionToken);
+					if (!session) {
+						console.log('WebSocket verification failed: invalid session');
+						return false;
+					}
+
+					// Verify user has access to project
+					const projectMembership = await prisma.projectMember.findFirst({
+						where: {
+							projectId: projectId,
+							userId: session.userId
+						}
+					});
+
+					if (!projectMembership) {
+						console.log('WebSocket verification failed: no project membership');
+						return false;
+					}
+
+					// Store auth info for connection handler
+					(info.req as any).userId = session.userId;
+					(info.req as any).projectId = projectId;
+					
+					console.log(`WebSocket verification successful for user ${session.userId} in project ${projectId}`);
+					return true;
+				} catch (error) {
+					console.error('WebSocket verification error:', error);
 					return false;
 				}
-
-				// Store auth info for connection handler
-				(info.req as any).userId = session.userId;
-				(info.req as any).projectId = projectId;
-				
-				return true;
 			}
 		});
 
@@ -94,16 +103,23 @@ function initWebSocketServer() {
 					// Handle different message types
 					if (message.type === 'ping') {
 						ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
+					} else if (message.type === 'echo') {
+						// Echo test for bidirectional communication
+						ws.send(JSON.stringify({ 
+							type: 'echo_response', 
+							originalMessage: message,
+							timestamp: Date.now() 
+						}));
 					}
-					// Add more message handlers as needed
+					// Add more message handlers as needed for bidirectional features
 				} catch (error) {
 					console.error('Error handling WebSocket message:', error);
 				}
 			});
 
 			// Handle connection close
-			ws.on('close', () => {
-				console.log(`WebSocket connection closed for user ${userId} in project ${projectId}`);
+			ws.on('close', (code, reason) => {
+				console.log(`WebSocket connection closed for user ${userId} in project ${projectId}. Code: ${code}, Reason: ${reason}`);
 				realtimeBroadcaster.removeConnection(connectionId);
 			});
 
@@ -111,6 +127,20 @@ function initWebSocketServer() {
 			ws.on('error', (error) => {
 				console.error('WebSocket error:', error);
 				realtimeBroadcaster.removeConnection(connectionId);
+			});
+
+			// Set up periodic ping to keep connection alive
+			const pingInterval = setInterval(() => {
+				if (ws.readyState === ws.OPEN) {
+					ws.ping();
+				} else {
+					clearInterval(pingInterval);
+				}
+			}, 30000); // 30 seconds
+
+			// Clear ping interval on close
+			ws.on('close', () => {
+				clearInterval(pingInterval);
 			});
 		});
 

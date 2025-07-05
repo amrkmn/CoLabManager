@@ -203,12 +203,61 @@ class RealtimeStore {
 	}
 
 	// Send message via WebSocket (bidirectional communication)
-	send(message: any) {
+	send(message: any): boolean {
 		if (this.connection instanceof WebSocket && this.connection.readyState === WebSocket.OPEN) {
 			this.connection.send(JSON.stringify(message));
 			return true;
 		}
+		console.warn('Cannot send message: WebSocket not connected');
 		return false;
+	}
+
+	// Test bidirectional communication
+	testBidirectional(): Promise<boolean> {
+		return new Promise((resolve) => {
+			if (!(this.connection instanceof WebSocket) || this.connection.readyState !== WebSocket.OPEN) {
+				resolve(false);
+				return;
+			}
+
+			const testMessage = {
+				type: 'echo',
+				testData: 'bidirectional test',
+				timestamp: Date.now()
+			};
+
+			const timeout = setTimeout(() => {
+				resolve(false);
+			}, 5000);
+
+			const handleMessage = (event: MessageEvent) => {
+				try {
+					const data = JSON.parse(event.data);
+					if (data.type === 'echo_response' && data.originalMessage.testData === testMessage.testData) {
+						clearTimeout(timeout);
+						this.connection!.removeEventListener('message', handleMessage);
+						resolve(true);
+					}
+				} catch (error) {
+					// Ignore parsing errors for other messages
+				}
+			};
+
+			this.connection.addEventListener('message', handleMessage);
+			this.connection.send(JSON.stringify(testMessage));
+		});
+	}
+
+	// Get connection type for debugging
+	getConnectionType(): 'websocket' | 'sse' | 'disconnected' {
+		if (!this.connection) return 'disconnected';
+		if (this.connection instanceof WebSocket) return 'websocket';
+		return 'sse';
+	}
+
+	// Check if bidirectional communication is available
+	isBidirectional(): boolean {
+		return this.connection instanceof WebSocket && this.connection.readyState === WebSocket.OPEN;
 	}
 }
 
