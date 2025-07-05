@@ -27,17 +27,63 @@ export const GET: RequestHandler = async ({ params, locals, request }) => {
 		return json({ error: true, message: 'Project not found or access denied' }, { status: 404 });
 	}
 
-	// Create SSE stream
+	// Check if this is a WebSocket upgrade request
+	const upgradeHeader = request.headers.get('upgrade');
+	const connectionHeader = request.headers.get('connection');
+	
+	if (upgradeHeader?.toLowerCase() === 'websocket' && 
+		connectionHeader?.toLowerCase().includes('upgrade')) {
+		
+		// For WebSocket upgrade, we need to handle it at the server level
+		// Return a special response that will be handled by the server
+		return new Response('WebSocket upgrade endpoint', {
+			status: 426,
+			headers: {
+				'Upgrade': 'websocket',
+				'Connection': 'Upgrade',
+				'X-Project-Id': projectId,
+				'X-User-Id': user.id
+			}
+		});
+	}
+
+	// Fallback to SSE for backward compatibility
 	const stream = new ReadableStream({
 		start(controller) {
 			const connectionId = randomUUID();
 
-			// Add connection to broadcaster
+			// For SSE, we need to create a mock WebSocket interface
+			const mockWebSocket = {
+				readyState: 1, // OPEN
+				send: (data: string) => {
+					try {
+						const encoder = new TextEncoder();
+						const eventData = `data: ${data}\n\n`;
+						const encodedData = encoder.encode(eventData);
+						controller.enqueue(encodedData);
+					} catch (error) {
+						console.error('Error sending SSE message:', error);
+					}
+				},
+				close: () => {
+					try {
+						controller.close();
+					} catch (error) {
+						// Controller might already be closed
+					}
+				},
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				ping: () => {} // Mock ping for SSE
+			} as any;
+
+			// Add connection to broadcaster with mock WebSocket
 			realtimeBroadcaster.addConnection({
 				id: connectionId,
-				controller,
+				socket: mockWebSocket,
 				projectId,
-				userId: user.id
+				userId: user.id,
+				lastPing: Date.now()
 			});
 
 			// Send initial connection message
@@ -72,7 +118,11 @@ export const GET: RequestHandler = async ({ params, locals, request }) => {
 			request.signal.addEventListener('abort', () => {
 				clearInterval(heartbeat);
 				realtimeBroadcaster.removeConnection(connectionId);
-				controller.close();
+				try {
+					controller.close();
+				} catch (error) {
+					// Controller might already be closed
+				}
 			});
 		}
 	});
