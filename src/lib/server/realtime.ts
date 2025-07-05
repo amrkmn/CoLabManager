@@ -1,4 +1,6 @@
-// Server-sent events broadcaster for real-time updates
+// WebSocket broadcaster for real-time updates
+import type { WebSocket as WSWebSocket } from 'ws';
+
 type EventType = 'task_created' | 'task_updated' | 'task_deleted' | 'task_moved';
 
 interface RealtimeEvent {
@@ -9,36 +11,62 @@ interface RealtimeEvent {
 	userId: string;
 }
 
-interface SSEConnection {
+interface WebSocketConnection {
 	id: string;
-	controller: ReadableStreamDefaultController;
+	socket: WSWebSocket;
 	projectId: string;
 	userId: string;
+	lastPing?: number;
 }
 
 class RealtimeBroadcaster {
-	private connections = new Map<string, SSEConnection>();
+	private connections = new Map<string, WebSocketConnection>();
 
-	addConnection(connection: SSEConnection) {
+	addConnection(connection: WebSocketConnection) {
 		this.connections.set(connection.id, connection);
+		
+		// Set up ping/pong for connection health
+		connection.socket.on('pong', () => {
+			connection.lastPing = Date.now();
+		});
+		
+		// Handle connection close
+		connection.socket.on('close', () => {
+			this.removeConnection(connection.id);
+		});
+		
+		// Handle connection errors
+		connection.socket.on('error', () => {
+			this.removeConnection(connection.id);
+		});
 	}
 
 	removeConnection(connectionId: string) {
-		this.connections.delete(connectionId);
+		const connection = this.connections.get(connectionId);
+		if (connection) {
+			// Close WebSocket if still open
+			if (connection.socket.readyState === connection.socket.OPEN) {
+				connection.socket.close();
+			}
+			this.connections.delete(connectionId);
+		}
 	}
 
 	broadcast(event: RealtimeEvent) {
-		const encoder = new TextEncoder();
-		const eventData = `data: ${JSON.stringify(event)}\n\n`;
-		const encodedData = encoder.encode(eventData);
+		const eventData = JSON.stringify(event);
 
 		// Send to all connections for the same project, except the originating user
 		for (const [connectionId, connection] of this.connections) {
 			if (connection.projectId === event.projectId && connection.userId !== event.userId) {
 				try {
-					connection.controller.enqueue(encodedData);
+					if (connection.socket.readyState === connection.socket.OPEN) {
+						connection.socket.send(eventData);
+					} else {
+						// Remove stale connection
+						this.removeConnection(connectionId);
+					}
 				} catch (error) {
-					console.error('Error sending SSE message:', error);
+					console.error('Error sending WebSocket message:', error);
 					// Remove broken connection
 					this.removeConnection(connectionId);
 				}
@@ -97,7 +125,36 @@ class RealtimeBroadcaster {
 		}
 		return this.connections.size;
 	}
+
+	// Send heartbeat to all connections to check health
+	sendHeartbeat() {
+		const heartbeatData = JSON.stringify({
+			type: 'heartbeat',
+			timestamp: Date.now()
+		});
+
+		for (const [connectionId, connection] of this.connections) {
+			try {
+				if (connection.socket.readyState === connection.socket.OPEN) {
+					connection.socket.ping();
+					connection.socket.send(heartbeatData);
+				} else {
+					this.removeConnection(connectionId);
+				}
+			} catch (error) {
+				console.error('Error sending heartbeat:', error);
+				this.removeConnection(connectionId);
+			}
+		}
+	}
 }
 
 // Global broadcaster instance
 export const realtimeBroadcaster = new RealtimeBroadcaster();
+
+// Set up periodic heartbeat to maintain connections and detect dead ones
+if (typeof setInterval !== 'undefined') {
+	setInterval(() => {
+		realtimeBroadcaster.sendHeartbeat();
+	}, 30000); // 30 seconds
+}
