@@ -1,8 +1,10 @@
 import { prisma } from '$lib/server/prisma';
 import { json } from '@sveltejs/kit';
-import * as argon2 from "argon2";
+import * as argon2 from 'argon2';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
+import { getPublicURL } from '$lib/server/minio';
+import { isNullish } from '@sapphire/utilities';
 
 // GET /api/admin/users - Get all users (admin only)
 export const GET: RequestHandler = async ({ locals, url }) => {
@@ -54,6 +56,13 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		]);
 
 		const totalPages = Math.ceil(totalCount / limit);
+
+		// Directly modify the users array instead of creating a copy
+		users.forEach((user) => {
+			user.avatar = isNullish(user.avatar)
+				? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}`
+				: getPublicURL(user.avatar);
+		});
 
 		return json({
 			success: true,
