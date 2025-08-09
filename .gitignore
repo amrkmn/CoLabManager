@@ -32,3 +32,6 @@ compose.yaml
 
 # SpecStory files
 .specstory/ai_rules_backups
+
+# Serena's Caches
+.serena/cache

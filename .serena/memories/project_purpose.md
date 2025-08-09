@@ -1,0 +1,1 @@
+This project is a comprehensive project management application called "PTA" (Project Tracking Application). It is built with SvelteKit and features team collaboration, task management, and email-based user invitations. Key features include project management, Kanban-style task tracking, file management, and secure user authentication with email verification.
