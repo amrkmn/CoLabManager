@@ -62,7 +62,7 @@ For local development and testing:
 ```bash
 git clone <repository-url>
 cd PTA
-bun install
+yarn install
 # or
 npm install
 ```
@@ -113,7 +113,7 @@ npx prisma db seed
 Start the development server:
 
 ```bash
-bun run dev
+yarn run dev
 # or
 npm run dev
 ```
@@ -186,7 +186,7 @@ The application supports any SMTP server. Update the SMTP configuration in your 
 To create a production version:
 
 ```bash
-bun run build
+yarn run build
 # or
 npm run build
 ```
@@ -194,7 +194,7 @@ npm run build
 Preview the production build:
 
 ```bash
-bun run preview
+yarn run preview
 # or
 npm run preview
 ```

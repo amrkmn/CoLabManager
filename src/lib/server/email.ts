@@ -52,14 +52,19 @@ export function generateVerificationEmailHtml(name: string, verificationUrl: str
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; }
                 .content { padding: 20px; background-color: #f9f9f9; }
-                .button { 
-                    display: inline-block; 
-                    background-color: #2563eb; 
-                    color: white; 
-                    padding: 12px 24px; 
-                    text-decoration: none; 
-                    border-radius: 5px; 
-                    margin: 20px 0;                }
+                .button {
+                    display: inline-block;
+                    background-color: #2563eb;
+                    color: white;
+                    padding: 12px 24px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                }
+                .button:hover {
+                    background-color: #1e40af;
+                    color: white !important;
+                }
                 .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
                 .unsubscribe { color: #999; font-size: 11px; text-decoration: underline; }
                 .unsubscribe:hover { color: #666; }
@@ -77,7 +82,7 @@ export function generateVerificationEmailHtml(name: string, verificationUrl: str
                         <a href="${verificationUrl}" class="button" style="color: white">Verify Email Address</a>
                     </div>
                     <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
-                    <p style="word-break: break-all; color: #2563eb;">${verificationUrl}</p>
+                    <p style="word-break: break-all; color: #374151;">${verificationUrl}</p>
                     <p>This verification link will expire in 24 hours.</p>                    <p>If you didn't create an account with us, please ignore this email.</p>
                 </div>
                 <div class="footer">
@@ -105,15 +110,28 @@ export function generateProjectInviteEmailHtml(
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                 .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; }
                 .content { padding: 20px; background-color: #f9f9f9; }
-                .button { 
-                    display: inline-block; 
-                    background-color: #2563eb; 
-                    color: white; 
-                    padding: 12px 24px; 
-                    text-decoration: none; 
-                    border-radius: 5px; 
-                    margin: 20px 0; 
-                }                .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+                .button {
+                    display: inline-block;
+                    background-color: #2563eb;
+                    color: white;
+                    padding: 12px 24px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin: 10px 5px;
+                }
+                .button:hover {
+                    background-color: #1e40af;
+                    color: white !important;
+                }
+                .button-decline {
+                    background-color: #dc2626;
+                    color: white;
+                }
+                .button-decline:hover {
+                    background-color: #b91c1c;
+                    color: white !important;
+                }
+                .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
                 .unsubscribe { color: #999; font-size: 11px; text-decoration: underline; }
                 .unsubscribe:hover { color: #666; }
                 .project-info {
@@ -140,10 +158,11 @@ export function generateProjectInviteEmailHtml(
                     
                     <p>Click the button below to accept the invitation and start collaborating:</p>
                     <div style="text-align: center;">
-                        <a href="${inviteUrl}" class="button">Accept Invitation</a>
+                        <a href="${inviteUrl}&action=accept" class="button">Accept Invitation</a>
+                        <a href="${inviteUrl}&action=decline" class="button button-decline">Decline Invitation</a>
                     </div>
                     <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
-                    <p style="word-break: break-all; color: #2563eb;">${inviteUrl}</p>
+                    <p style="word-break: break-all; color: #374151;">${inviteUrl}</p>
                     <p>This invitation link will expire in 7 days.</p>                    <p>If you don't have a CoLab Manager account yet, you'll be prompted to create one first.</p>
                 </div>
                 <div class="footer">

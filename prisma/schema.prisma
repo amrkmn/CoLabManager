@@ -134,6 +134,7 @@ model Invitation {
     projectId   String
     email       String
     role        ProjectMemberRole
+    token       String            @unique
     status      InviteStatus      @default(Pending) // "pending", "accepted", "denied"
     createdAt   DateTime          @default(now())
     respondedAt DateTime?
