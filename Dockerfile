@@ -4,7 +4,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Enable corepack and use Yarn v4
-RUN corepack enable && corepack prepare yarn@4.9.2 --activate
+RUN corepack enable && corepack prepare yarn@4.9.3 --activate
 
 # Copy necessary files for install
 COPY package.json yarn.lock .yarnrc.yml ./
@@ -13,7 +13,7 @@ COPY .yarn ./.yarn
 # Install all dependencies
 RUN yarn install --immutable
 
-# Copy Prisma schema and generate client
+# Copy Prisma schema
 COPY prisma ./prisma/
 RUN yarn prisma generate
 
