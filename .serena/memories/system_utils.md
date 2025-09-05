@@ -1,4 +1,5 @@
 The development environment is Windows, so you should use PowerShell commands. Here are some common commands:
+
 - **List files and directories:** `ls` or `Get-ChildItem`
 - **Change directory:** `cd <directory>`
 - **Create a directory:** `mkdir <directory>`

@@ -19,10 +19,7 @@
 	let { show = $bindable(), members, onClose, onRemoveMember }: Props = $props();
 
 	function getAvatarUrl(member: Member) {
-		return (
-			member.avatar ||
-			`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}`
-		);
+		return member.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}`;
 	}
 </script>
 

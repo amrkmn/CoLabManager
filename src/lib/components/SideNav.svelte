@@ -109,7 +109,7 @@
 		// Transform based on mobile state - always apply transform on mobile
 		mobileOpen ? 'translate-x-0' : '-translate-x-full',
 		// On desktop, always visible (overrides mobile transform and positioning)
-		'sm:translate-x-0 sm:top-0'
+		'sm:top-0 sm:translate-x-0'
 	)}
 >
 	<!-- Projects Section -->

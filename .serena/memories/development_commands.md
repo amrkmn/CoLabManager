@@ -1,4 +1,5 @@
 Here are the main commands for development:
+
 - **Install dependencies:** `yarn install`
 - **Run development server:** `yarn dev` or `vite dev`
 - **Build the application:** `yarn build` or `vite build`

@@ -1,4 +1,5 @@
 The project uses the following technologies:
+
 - **Backend:** SvelteKit with Node.js adapter, Bun is also an option.
 - **Database:** PostgreSQL with Prisma as the ORM.
 - **Frontend:** Svelte and Tailwind CSS.

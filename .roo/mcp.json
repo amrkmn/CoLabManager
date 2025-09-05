@@ -1,26 +1,26 @@
 {
-  "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "ide-assistant",
-        "--project",
-        "${workspaceFolder}"
-      ],
-      "disabled": false,
-      "alwaysAllow": [
-        "get_symbols_overview",
-        "write_memory",
-        "initial_instructions",
-        "check_onboarding_performed",
-        "onboarding",
-        "read_memory"
-      ]
-    }
-  }
+	"mcpServers": {
+		"serena": {
+			"command": "uvx",
+			"args": [
+				"--from",
+				"git+https://github.com/oraios/serena",
+				"serena",
+				"start-mcp-server",
+				"--context",
+				"ide-assistant",
+				"--project",
+				"${workspaceFolder}"
+			],
+			"disabled": false,
+			"alwaysAllow": [
+				"get_symbols_overview",
+				"write_memory",
+				"initial_instructions",
+				"check_onboarding_performed",
+				"onboarding",
+				"read_memory"
+			]
+		}
+	}
 }

@@ -1,4 +1,5 @@
 Before marking a task as complete, ensure the following steps have been taken:
+
 1.  **Format your code:** Run `yarn format` to ensure code consistency.
 2.  **Lint your code:** Run `yarn lint` to check for any formatting errors.
 3.  **Type-check your code:** Run `yarn check` to catch any TypeScript errors.

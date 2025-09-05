@@ -1,4 +1,5 @@
 The codebase is structured as follows:
+
 - `src/`: Contains the main application source code.
   - `routes/`: Defines the application's pages and API endpoints using file-based routing.
   - `lib/`: Holds reusable components, server-side logic, data stores, and utility functions.

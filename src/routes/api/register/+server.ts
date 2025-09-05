@@ -4,7 +4,7 @@ import { prisma } from '$lib/server/prisma';
 import { isFirstUserSetup } from '$lib/server/setup';
 import { isNullish } from '@sapphire/utilities';
 import { json } from '@sveltejs/kit';
-import * as argon2 from "argon2";
+import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import type { RequestHandler } from './$types';
